@@ -1,0 +1,548 @@
+<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HanziGo · Tiếng Trung lớp 6</title><style>
+:root{--bg:#f5f8ff;--ink:#202b47;--muted:#71809c;--purple:#7655e8;--blue:#eaf0ff;--green:#21a778;--line:#e2e8f3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,'Segoe UI',Arial,sans-serif}button,input{font:inherit}button{cursor:pointer}.layout{display:grid;grid-template-columns:240px 1fr;min-height:100vh}.side{background:#fff;border-right:1px solid var(--line);padding:26px 16px;position:sticky;top:0;height:100vh}.logo{font-size:27px;font-weight:900;color:var(--purple);margin:0 0 30px 12px}.logo span{color:#ffae43}.nav{width:100%;text-align:left;padding:14px 16px;margin:4px 0;border:0;border-radius:15px;background:transparent;color:#64728e;font-weight:750}.nav.active{background:#efeaff;color:#6546d6}.main{max-width:1050px;width:100%;margin:auto;padding:30px 35px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center}.pill{background:#fff;padding:10px 16px;border-radius:24px;font-weight:800;color:#7355d7;box-shadow:0 3px 18px #26396a0a}.hero{background:linear-gradient(110deg,#7454e8,#a18afa);color:#fff;border-radius:26px;padding:34px;margin:24px 0;display:flex;justify-content:space-between;align-items:center;gap:16px}.hero h1{margin:0 0 10px;font-size:32px}.hero p{margin:0;opacity:.92}.mascot{font-size:76px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card,.panel{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 6px 24px #27386509}.card{cursor:pointer}.card:hover{border-color:#a18afa;transform:translateY(-2px)}.card h3{margin:10px 0 5px}.muted{color:var(--muted)}.tag{display:inline-block;background:#f0ebff;color:#7655e8;border-radius:20px;padding:5px 11px;font-size:12px;font-weight:800}.progress{height:12px;background:#e8eaf4;border-radius:20px;overflow:hidden}.progress>div{height:100%;background:#35cba0;border-radius:20px;transition:width .3s}.btn{border:0;border-radius:14px;padding:13px 20px;background:var(--purple);color:white;font-weight:800}.btn.secondary{background:#f0edff;color:#674bd1}.btn.green{background:var(--green)}.btn:disabled{opacity:.45;cursor:not-allowed}.bigchar{font-size:100px;font-weight:750;margin:10px 0;color:#6144d3}.pinyin{font-size:25px;color:#7d64ce;font-weight:700}.meaning{font-size:21px;font-weight:650}.center{text-align:center}.lessonlist{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.lessonitem{background:#fff;border:1px solid var(--line);border-radius:16px;padding:17px;text-align:left}.lessonitem strong{font-size:28px;display:block}.lessonitem small{color:var(--muted)}.explain{background:#f4f0ff;border-left:4px solid #9579f5;padding:18px;border-radius:12px;line-height:1.8}.example{background:#f2faf7;border-radius:16px;padding:17px;margin:16px 0}.options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}.option,.tile{border:2px solid #e5e9f4;border-radius:15px;background:#fff;padding:16px;font-weight:750;color:var(--ink)}.option.selected{border-color:#7958ea;background:#f2edff}.option.correct{border-color:#22b37c;background:#eafff5}.option.wrong{border-color:#ec6d78;background:#fff0f0}.feedback{padding:15px;border-radius:14px;background:#f2edff;margin:16px 0;line-height:1.6}.tile{margin:5px}.tiles{min-height:64px}.answerbox{background:#f2edff;border:2px dashed #a48df0;border-radius:15px;min-height:70px;padding:12px;margin:12px 0}.canvas{width:100%;height:290px;touch-action:none;border:2px solid #cdd5ea;border-radius:14px;background-color:white;background-image:linear-gradient(to right,transparent calc(50% - 1px),#f1dce3 50%,transparent calc(50% + 1px)),linear-gradient(to bottom,transparent calc(50% - 1px),#f1dce3 50%,transparent calc(50% + 1px));cursor:crosshair}.small{font-size:13px}.hide{display:none}.lessonhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.result{font-size:50px;color:#6e4cdd;font-weight:900}.stats{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}.stats .pill{color:#3d4d72}.note{font-size:13px;color:#75819b;line-height:1.6}@media(max-width:800px){.layout{display:block}.side{height:auto;position:static;padding:12px;display:flex;flex-wrap:wrap;align-items:center;gap:4px}.logo{margin:0 12px;font-size:21px}.nav{width:auto;padding:10px;font-size:12px}.main{padding:15px}.hero{padding:23px}.hero h1{font-size:25px}.mascot{font-size:45px}.cards,.lessonlist{grid-template-columns:1fr 1fr}.options{grid-template-columns:1fr}}@media(max-width:440px){.cards,.lessonlist{grid-template-columns:1fr}.hero{margin:14px 0}}
+.demo-layout{display:grid;grid-template-columns:minmax(230px,360px) 1fr;gap:18px;align-items:center;margin:16px 0 24px}.demo-box{background:#fff;border:2px solid #ded7f4;border-radius:18px;overflow:hidden;aspect-ratio:1}.demo-box{position:relative}.demo-box svg{width:100%;height:100%}.demo-ink-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.demo-controls select{padding:9px;border:1px solid #cdd5ea;border-radius:10px;background:#fff}@media(max-width:680px){.demo-layout{grid-template-columns:1fr}.demo-box{max-width:360px;width:100%;margin:auto}}.soundgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin:16px 0 24px}.sound{border:1px solid #ddd9f6;border-radius:14px;background:#f9f7ff;padding:12px;display:flex;flex-direction:column;gap:5px;align-items:center;color:#40366f;min-height:105px}.sound b{font-size:26px}.sound small{color:#65718d}.sound span{font-size:12px;color:#7655e8}.strokegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}.strokechip{border:2px solid #e6e3f2;border-radius:12px;background:white;padding:9px;display:flex;flex-direction:column;align-items:center;gap:5px}.strokechip b{font-size:33px}.strokechip small{font-size:11px}.strokechip.chosen{border-color:#7655e8;background:#f2edff}.modebar{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}.canvas{height:auto;aspect-ratio:800/440}@media(max-width:600px){.soundgrid{grid-template-columns:repeat(3,1fr)}.strokegrid{grid-template-columns:repeat(2,1fr)}} .write-picker{margin:16px 0;padding:14px;background:#f8f6ff;border-radius:14px}.write-picker select{display:block;width:100%;max-width:520px;margin-top:8px;padding:12px;border:1px solid #d9d1ee;border-radius:10px;background:white}.timeline-wrap{margin:15px 0;padding:15px;border:1px solid #e1daf6;border-radius:15px;background:#f8f6ff}.timeline-top{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13px;font-weight:750;color:#6546d6}.timeline-slider{width:100%;margin:14px 0 8px;accent-color:#7655e8;cursor:ew-resize;touch-action:pan-y}.timeline-marks{display:flex;justify-content:space-between;color:#71809c;font-size:12px}.timeline-slider:disabled{opacity:.5;cursor:wait}.hanzi-modern,.bigchar,.strokechip b,.write-picker option{font-family:"Microsoft YaHei","Noto Sans CJK SC","Noto Sans SC","PingFang SC","Heiti SC",sans-serif!important;font-weight:500!important;font-variant-east-asian:normal}.demo-box svg{shape-rendering:geometricPrecision}.demo-arrow-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.demo-visual{display:flex;flex-direction:column;gap:8px;min-width:0}.demo-play-below{width:100%;display:block;text-align:center}.demo-visual .demo-box{width:100%}@media(max-width:680px){.demo-visual{width:100%;max-width:360px;margin:auto}}
+/* Controls shown immediately under writing demo, on desktop and mobile */
+.demo-layout{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin:16px 0 24px}.demo-visual{width:100%;max-width:420px;margin:0 auto}.demo-controls{width:100%;min-width:0}.demo-action-row{display:flex;flex-wrap:wrap;gap:10px}.demo-action-row .btn{flex:0 1 auto}@media(max-width:680px){.demo-visual{max-width:360px}.demo-action-row .btn{flex:1 1 140px}}
+
+/* HanziGo: khen thưởng thân thiện */
+#hgCelebrate{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:#20204455;padding:20px}#hgCelebrate.show{display:flex}#hgCelebrate .hg-pop{width:min(360px,94vw);padding:28px 22px;text-align:center;border-radius:26px;background:white;box-shadow:0 20px 80px #30265a44;animation:hgBounce .42s ease-out}#hgCelebrate .hg-emoji{font-size:66px}#hgCelebrate h2{color:#6b48d6;margin:8px 0}#hgCelebrate p{color:#64728e}#hgCelebrate .hg-spark{font-size:23px;letter-spacing:10px}@keyframes hgBounce{0%{transform:scale(.65);opacity:0}75%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}@media(prefers-reduced-motion:reduce){#hgCelebrate .hg-pop{animation:none}}
+
+/* Crisp, proportion-preserving writing board, including narrow Android screens. */
+#hgWritingArea{position:relative;min-width:0}
+.hg-writing-heading h2{margin:12px 0}
+.hg-board-wrap{position:relative;width:100%;display:flex;align-items:center;justify-content:center;min-height:0}
+#draw.canvas{display:block;width:100%;height:auto;aspect-ratio:20/11;flex:none;object-fit:contain;touch-action:none;image-rendering:auto}
+.hg-full-btn{position:absolute;right:7px;bottom:7px;z-index:2;padding:9px 12px;font-size:12px;box-shadow:0 2px 10px #0002;opacity:.95}
+#hgWritingArea.hg-writing-full{position:fixed!important;inset:0!important;inset:0!important;z-index:9000;background:white;overflow:hidden;display:flex;flex-direction:column;padding:8px max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));height:100dvh;width:100vw;max-width:none}
+#hgWritingArea.hg-writing-full .hg-writing-heading{flex:none}
+#hgWritingArea.hg-writing-full .hg-writing-heading h2{font-size:16px;margin:2px 0}
+#hgWritingArea.hg-writing-full .modebar{margin:4px 0;flex:none}
+#hgWritingArea.hg-writing-full .modebar .btn{padding:7px 10px;font-size:12px}
+#hgWritingArea.hg-writing-full>p.muted{display:none}
+#hgWritingArea.hg-writing-full>.hg-board-wrap{flex:1 1 auto;min-height:0;overflow:hidden}
+#hgWritingArea.hg-writing-full #draw.canvas{width:min(100%, calc((100dvh - 145px)*20/11));max-height:100%;height:auto;aspect-ratio:20/11;object-fit:contain}
+#hgWritingArea.hg-writing-full .hg-board-wrap .hg-full-btn{right:clamp(6px,2vw,20px);bottom:6px}
+#hgWritingArea.hg-writing-full .lessonhead{margin-top:5px!important;flex:none;gap:4px}
+#hgWritingArea.hg-writing-full .lessonhead .btn{padding:7px 10px;font-size:12px}
+#hgWritingArea.hg-writing-full>p.note{display:none}
+#hgWritingArea:fullscreen{width:100vw;height:100dvh}
+body.hg-writing-lock{overflow:hidden!important}
+#hgWritingArea.hg-writing-full #hgCelebrate{position:fixed;inset:0;z-index:2147483647;align-items:center;justify-content:center;padding:20px max(20px,env(safe-area-inset-right)) 20px max(20px,env(safe-area-inset-left))}
+#hgWritingArea:fullscreen #hgCelebrate.show{display:flex}
+@media(max-width:600px){#hgWritingArea.hg-writing-full .hg-writing-heading h2{font-size:14px}#hgWritingArea.hg-writing-full #draw.canvas{width:min(100%,calc((100dvh - 125px)*20/11))}#hgWritingArea.hg-writing-full .tag{font-size:10px}}
+
+/* Landscape writing workspace: preserve the 800x440 drawing coordinate system. */
+#hgWritingArea.hg-writing-full{padding:env(safe-area-inset-top,0px) max(5px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(5px,env(safe-area-inset-left));gap:2px}
+#hgWritingArea.hg-writing-full .hg-writing-heading h2{font-size:clamp(12px,2.8vh,19px);margin:0}
+#hgWritingArea.hg-writing-full .modebar{margin:1px 0;gap:5px}
+#hgWritingArea.hg-writing-full .modebar .btn{padding:5px 10px;font-size:clamp(11px,2.4vh,15px)}
+#hgWritingArea.hg-writing-full>.hg-board-wrap{flex:1 1 0;min-height:0;width:100%;position:relative}
+#hgWritingArea.hg-writing-full #draw.canvas{width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important;aspect-ratio:20/11!important;object-fit:contain;box-shadow:0 0 0 1px #d3d9e8}
+#hgWritingArea.hg-writing-full .lessonhead{margin-top:1px!important}
+#hgWritingArea.hg-writing-full .lessonhead .btn{padding:5px 9px}
+#hgWritingArea.hg-writing-full .hg-full-btn{right:6px;bottom:5px;font-size:11px;padding:6px 9px}
+#hgLandscapeTip{display:none}
+#hgWritingArea.hg-writing-full #hgLandscapeTip{display:none;position:absolute;inset:0;z-index:4;align-items:center;justify-content:center;background:#f9f7ffed;color:#5740ad;text-align:center;padding:20px;font-weight:800;font-size:18px;pointer-events:none}
+@media(orientation:portrait) and (max-width:800px){#hgWritingArea.hg-writing-full #hgLandscapeTip{display:none!important}}
+@media(orientation:landscape) and (max-height:520px){#hgWritingArea.hg-writing-full .hg-writing-heading{display:none}#hgWritingArea.hg-writing-full .modebar{margin:0}#hgWritingArea.hg-writing-full .lessonhead{margin:0!important}#hgWritingArea.hg-writing-full .tag{font-size:10px}}
+
+/* Edge-to-edge landscape practice: keep the 800:440 glyph geometry intact. */
+#hgWritingArea.hg-writing-full{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;overflow:hidden!important;background:#fff!important;display:block!important;z-index:9000!important}
+#hgWritingArea.hg-writing-full .hg-writing-heading,
+#hgWritingArea.hg-writing-full > .modebar,
+#hgWritingArea.hg-writing-full > .muted,
+#hgWritingArea.hg-writing-full > .lessonhead,
+#hgWritingArea.hg-writing-full > .note{display:none!important}
+#hgWritingArea.hg-writing-full > .hg-board-wrap{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;background:#fff!important}
+/* Cover the entire landscape screen, cropping only excess margins rather than stretching the character. */
+#hgWritingArea.hg-writing-full #draw.canvas{display:block!important;position:relative!important;flex:0 0 auto!important;width:max(100vw,calc(100dvh * 20 / 11))!important;height:auto!important;max-width:none!important;max-height:none!important;aspect-ratio:20/11!important;object-fit:fill!important;border:0!important;border-radius:0!important;touch-action:none!important;image-rendering:auto!important}
+#hgWritingArea.hg-writing-full .hg-full-btn{position:fixed!important;right:max(8px,env(safe-area-inset-right))!important;bottom:max(8px,env(safe-area-inset-bottom))!important;z-index:9002!important;padding:9px 12px!important;font-size:12px!important;background:#efeaff!important;color:#6144d3!important;border-radius:12px!important}
+#hgWritingArea.hg-writing-full #hgLandscapeTip{z-index:9001!important}
+#hgWritingArea.hg-writing-full:fullscreen{width:100vw!important;height:100dvh!important}
+
+/* Only the writing area is fullscreen; the surrounding application is unchanged. */
+body.hg-writing-lock .layout,body.hg-writing-lock .main,body.hg-writing-lock #app{transform:none!important;zoom:1!important}
+/* Keep erase button and live writing score visible above edge-to-edge board. */
+#hgWritingArea.hg-writing-full > .lessonhead{
+ display:flex!important;position:fixed!important;top:max(7px,env(safe-area-inset-top))!important;
+ left:max(9px,env(safe-area-inset-left))!important;right:max(9px,env(safe-area-inset-right))!important;
+ z-index:9004!important;align-items:center!important;justify-content:space-between!important;
+ gap:8px!important;margin:0!important;pointer-events:none!important;flex-wrap:nowrap!important;
+}
+#hgWritingArea.hg-writing-full > .lessonhead > *{pointer-events:auto!important}
+#hgWritingArea.hg-writing-full > .lessonhead .btn{
+ display:inline-flex!important;align-items:center;justify-content:center;
+ padding:9px 13px!important;border-radius:14px!important;
+ font-size:clamp(11px,2.7vw,14px)!important;white-space:nowrap;
+ background:#f0edff!important;color:#674bd1!important;box-shadow:0 2px 8px #0002;
+}
+#hgWritingArea.hg-writing-full > .lessonhead #writeScore{
+ display:inline-flex!important;align-items:center;max-width:55vw;overflow:hidden;
+ font-size:clamp(10px,2.4vw,13px)!important;padding:7px 11px!important;
+ border-radius:20px!important;white-space:nowrap;background:#f0edff!important;
+ color:#674bd1!important;box-shadow:0 2px 8px #0001;
+}
+@media(orientation:landscape) and (max-height:430px){
+ #hgWritingArea.hg-writing-full > .lessonhead .btn{padding:6px 10px!important}
+ #hgWritingArea.hg-writing-full > .lessonhead #writeScore{padding:5px 9px!important}
+}
+
+/* FIX: Rotate ONLY the existing practice section, never the Android Activity or WebView.
+   On a portrait device its rotated dimensions exactly cover the screen when held sideways. */
+@media (orientation:portrait) and (pointer:coarse){
+ #hgWritingArea.hg-writing-full{
+  position:fixed!important;top:0!important;left:100vw!important;right:auto!important;bottom:auto!important;
+  width:100dvh!important;height:100vw!important;max-width:none!important;
+  transform-origin:top left!important;transform:rotate(90deg)!important;
+  overflow:hidden!important;
+ }
+ #hgWritingArea.hg-writing-full > .hg-board-wrap{width:100%!important;height:100%!important}
+ #hgWritingArea.hg-writing-full #draw.canvas{
+  width:max(100%,calc(100vw * 20 / 11))!important;height:auto!important;
+ }
+ #hgWritingArea.hg-writing-full > .lessonhead{
+  position:absolute!important;top:6px!important;left:8px!important;right:8px!important;
+ }
+ #hgWritingArea.hg-writing-full .hg-full-btn{
+  position:absolute!important;right:8px!important;bottom:8px!important;
+ }
+ #hgWritingArea.hg-writing-full #hgCelebrate{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ }
+}
+</style><style id="hg-premium-style">
+body:not(.hg-auth-allowed)>.layout{visibility:hidden}#hgGate{position:fixed;inset:0;z-index:2147483640;background:linear-gradient(145deg,#f3f0ff,#f7fbff);display:flex;align-items:center;justify-content:center;padding:18px;font-family:system-ui,Arial,sans-serif;color:#27324c}
+#hgGate[hidden]{display:none!important}.hg-auth-card{background:#fff;border:1px solid #e5defb;border-radius:24px;padding:28px;width:min(460px,100%);box-shadow:0 18px 60px #30265a20;text-align:center}.hg-auth-card h2{color:#6b48d6;margin:10px 0}.hg-auth-card p{line-height:1.6}.hg-auth-card button{border:0;border-radius:12px;padding:13px 18px;background:#7454e8;color:#fff;font-weight:800;cursor:pointer}.hg-auth-card button:disabled{opacity:.5}.hg-auth-note{font-size:13px;color:#64728e}.hg-auth-error{color:#b3261e;overflow-wrap:anywhere}.hg-auth-status{font-size:13px;color:#5c4b91}.hg-auth-card .hg-outline{background:#f1ecff;color:#674bd1}.hg-payment{margin:15px 0;text-align:left;background:#f8f7ff;border:1px solid #e1dafa;border-radius:16px;padding:16px}.hg-payment-row{margin:9px 0;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.hg-payment-row strong{overflow-wrap:anywhere}.hg-payment .hg-copy{padding:7px 10px;font-size:12px;background:#ece6ff;color:#6040be}.hg-payment-price{font-size:25px;color:#6847d3;font-weight:900;text-align:center}.hg-payment-note{font-size:12px;color:#667085}.hg-payment-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}#hgUserStrip{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:12px}#hgUserStrip button{border:0;border-radius:9px;background:#f0edff;color:#674bd1;padding:6px 9px;cursor:pointer}
+</style></head><body><div id="hgGate" role="dialog" aria-modal="true" aria-label="Đăng nhập HanziGo"><div class="hg-auth-card"><div style="font-size:45px">🐼</div><h2 id="hgGateTitle">Chào mừng đến HanziGo</h2><p id="hgGateMessage">Đăng nhập bằng Google để bắt đầu 5 ngày học thử miễn phí.</p><div id="hgGateAction"><button id="hgGoogleLogin" type="button">Đăng nhập bằng Google</button></div><p class="hg-auth-status" id="hgGateStatus"></p><p class="hg-auth-error" id="hgGateError"></p><p class="hg-auth-note">Hạn dùng thử được tính từ ngày tạo tài khoản Firebase, không phụ thuộc bộ nhớ trình duyệt.</p></div></div><div class="layout"><aside class="side"><div class="logo">🐼 Hanzi<span>Go</span></div><button class="nav" data-page="home">🏠 Trang chủ</button><button class="nav" data-page="lessons">📖 Bài giảng</button><button class="nav" data-page="listen">🎧 Tập nghe</button><button class="nav" data-page="speak">🎙️ Tập nói</button><button class="nav" data-page="alphabet">🔤 Bảng Pinyin</button><button class="nav active" data-page="write">✍️ Tập viết</button><button class="nav" data-page="arrange">🧩 Ghép câu</button><button class="nav" data-page="quiz">📝 Trắc nghiệm</button></aside><main class="main"><div class="top"><div><strong>Xin chào, nhà thám hiểm tiếng Trung! 👋</strong><div class="muted small">Học từ số 0 · Giải thích bằng tiếng Việt</div></div><div class="pill">⭐ <span id="xp">0</span> XP</div></div><div id="app"></div></main></div><div id="hgCelebrate" role="dialog" aria-modal="true" aria-labelledby="hgCelebrateTitle" onclick="if(event.target===this)closeCelebrate()"><div class="hg-pop"><div class="hg-spark">✨ ⭐ ✨</div><div class="hg-emoji">🏆</div><h2 id="hgCelebrateTitle">Giỏi quá!</h2><p id="hgCelebrateMsg">Bạn làm rất tốt!</p><button class="btn green" onclick="closeCelebrate()">Tiếp tục học →</button></div></div><script>
+
+let hgAudio=null,hgCelebrateTimer=null;
+function playSuccessSound(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!hgAudio)hgAudio=new AC();if(hgAudio.state==='suspended')hgAudio.resume();const now=hgAudio.currentTime;[523.25,659.25,783.99,1046.5].forEach((freq,i)=>{const osc=hgAudio.createOscillator(),gain=hgAudio.createGain();osc.type='sine';osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,now+i*.105);gain.gain.exponentialRampToValueAtTime(.11,now+i*.105+.02);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.105+.25);osc.connect(gain);gain.connect(hgAudio.destination);osc.start(now+i*.105);osc.stop(now+i*.105+.27)})}catch(e){}}
+function closeCelebrate(){clearTimeout(hgCelebrateTimer);document.getElementById('hgCelebrate')?.classList.remove('show')}
+function celebrate(title='Chính xác!',message='Bạn đã làm rất tốt!'){const modal=document.getElementById('hgCelebrate');if(!modal)return;clearTimeout(hgCelebrateTimer);document.getElementById('hgCelebrateTitle').textContent=title;document.getElementById('hgCelebrateMsg').textContent=message;modal.classList.add('show');playSuccessSound();hgCelebrateTimer=setTimeout(closeCelebrate,2600)}
+
+const lessons=[["Chào hỏi", "你好", "nǐ hǎo", "Xin chào", "你好！", "Nǐ hǎo!", "Xin chào!", "你好", "你好", "Khi gặp bạn bè, nói 你好 (nǐ hǎo). 你 là bạn, 好 là tốt. Hai âm tiết thanh 3 đứng gần nhau thường đọc âm đầu gần thanh 2."], ["Tạm biệt", "再见", "zài jiàn", "Tạm biệt", "再见！", "Zài jiàn!", "Tạm biệt!", "再见", "再见", "再 nghĩa là lại; 见 nghĩa là gặp. 再见 nghĩa là hẹn gặp lại."], ["Cảm ơn", "谢谢", "xiè xie", "Cảm ơn", "谢谢你！", "Xiè xie nǐ!", "Cảm ơn bạn!", "谢谢", "谢谢 你", "谢谢 là lời cảm ơn. Âm tiết thứ hai thường đọc nhẹ."], ["Xin lỗi", "对不起", "duì bu qǐ", "Xin lỗi", "对不起！", "Duì bu qǐ!", "Xin lỗi!", "对不起", "对不起", "Dùng 对不起 khi làm phiền hoặc mắc lỗi. Có thể đáp 没关系 (méi guān xi) – không sao."], ["Tôi và bạn", "我", "wǒ", "Tôi", "我是学生。", "Wǒ shì xué shēng.", "Tôi là học sinh.", "我", "我 是 学生", "我 là tôi; 你 là bạn. 是 (shì) dùng để giới thiệu “là”."], ["Học sinh", "学生", "xué shēng", "Học sinh", "我是学生。", "Wǒ shì xué shēng.", "Tôi là học sinh.", "学生", "我 是 学生", "学生 là học sinh. 老师 (lǎo shī) là giáo viên."], ["Tên của bạn", "名字", "míng zi", "Tên", "你叫什么名字？", "Nǐ jiào shén me míng zi?", "Bạn tên là gì?", "名字", "你 叫 什么 名字", "叫 (jiào) nghĩa là gọi/tên là. 我叫安。 nghĩa là Tôi tên là An."], ["Số một", "一", "yī", "Một", "我有一个书包。", "Wǒ yǒu yí ge shū bāo.", "Tôi có một chiếc cặp.", "一", "我 有 一个 书包", "一 là số 1. Trong lời nói, thanh điệu của 一 có thể thay đổi theo âm sau."], ["Số hai", "二", "èr", "Hai", "我有两个朋友。", "Wǒ yǒu liǎng ge péng you.", "Tôi có hai người bạn.", "二", "我 有 两个 朋友", "二 là số 2; khi đếm hai đồ vật với lượng từ thường dùng 两 (liǎng)."], ["Số ba", "三", "sān", "Ba", "我有三本书。", "Wǒ yǒu sān běn shū.", "Tôi có ba quyển sách.", "三", "我 有 三本 书", "Ghi nhớ: 三 đọc là sān, nghĩa là “Ba”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Gia đình", "家", "jiā", "Nhà, gia đình", "我爱我家。", "Wǒ ài wǒ jiā.", "Tôi yêu gia đình mình.", "家", "我 爱 我 家", "Ghi nhớ: 家 đọc là jiā, nghĩa là “Nhà, gia đình”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Mẹ", "妈妈", "mā ma", "Mẹ", "我爱妈妈。", "Wǒ ài mā ma.", "Tôi yêu mẹ.", "妈妈", "我 爱 妈妈", "Ghi nhớ: 妈妈 đọc là mā ma, nghĩa là “Mẹ”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Bố", "爸爸", "bà ba", "Bố", "我爱爸爸。", "Wǒ ài bà ba.", "Tôi yêu bố.", "爸爸", "我 爱 爸爸", "Ghi nhớ: 爸爸 đọc là bà ba, nghĩa là “Bố”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Bạn bè", "朋友", "péng you", "Bạn bè", "他是我的朋友。", "Tā shì wǒ de péng you.", "Cậu ấy là bạn của tôi.", "朋友", "他 是 我的 朋友", "Ghi nhớ: 朋友 đọc là péng you, nghĩa là “Bạn bè”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Trường học", "学校", "xué xiào", "Trường học", "我去学校。", "Wǒ qù xué xiào.", "Tôi đi đến trường.", "学校", "我 去 学校", "Ghi nhớ: 学校 đọc là xué xiào, nghĩa là “Trường học”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Sách", "书", "shū", "Sách", "这是我的书。", "Zhè shì wǒ de shū.", "Đây là sách của tôi.", "书", "这 是 我的 书", "Ghi nhớ: 书 đọc là shū, nghĩa là “Sách”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Nước", "水", "shuǐ", "Nước", "我喝水。", "Wǒ hē shuǐ.", "Tôi uống nước.", "水", "我 喝 水", "Ghi nhớ: 水 đọc là shuǐ, nghĩa là “Nước”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Ăn", "吃", "chī", "Ăn", "我吃米饭。", "Wǒ chī mǐ fàn.", "Tôi ăn cơm.", "吃", "我 吃 米饭", "Ghi nhớ: 吃 đọc là chī, nghĩa là “Ăn”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Uống", "喝", "hē", "Uống", "我喝茶。", "Wǒ hē chá.", "Tôi uống trà.", "喝", "我 喝 茶", "Ghi nhớ: 喝 đọc là hē, nghĩa là “Uống”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Thích", "喜欢", "xǐ huan", "Thích", "我喜欢中文。", "Wǒ xǐ huan Zhōng wén.", "Tôi thích tiếng Trung.", "喜欢", "我 喜欢 中文", "Ghi nhớ: 喜欢 đọc là xǐ huan, nghĩa là “Thích”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Tiếng Trung", "中文", "Zhōng wén", "Tiếng Trung", "我学中文。", "Wǒ xué Zhōng wén.", "Tôi học tiếng Trung.", "中文", "我 学 中文", "Ghi nhớ: 中文 đọc là Zhōng wén, nghĩa là “Tiếng Trung”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Học", "学", "xué", "Học", "我学汉语。", "Wǒ xué Hàn yǔ.", "Tôi học tiếng Hán.", "学", "我 学 汉语", "Ghi nhớ: 学 đọc là xué, nghĩa là “Học”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Hôm nay", "今天", "jīn tiān", "Hôm nay", "今天天气很好。", "Jīn tiān tiān qì hěn hǎo.", "Hôm nay thời tiết rất đẹp.", "今天", "今天 天气 很 好", "Ghi nhớ: 今天 đọc là jīn tiān, nghĩa là “Hôm nay”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Ngày mai", "明天", "míng tiān", "Ngày mai", "明天见！", "Míng tiān jiàn!", "Hẹn gặp ngày mai!", "明天", "明天 见", "Ghi nhớ: 明天 đọc là míng tiān, nghĩa là “Ngày mai”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Có", "有", "yǒu", "Có", "我有一本书。", "Wǒ yǒu yì běn shū.", "Tôi có một quyển sách.", "有", "我 有 一本 书", "Ghi nhớ: 有 đọc là yǒu, nghĩa là “Có”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Không có", "没有", "méi yǒu", "Không có", "我没有电脑。", "Wǒ méi yǒu diàn nǎo.", "Tôi không có máy tính.", "没有", "我 没有 电脑", "Ghi nhớ: 没有 đọc là méi yǒu, nghĩa là “Không có”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Cái này", "这", "zhè", "Này, đây", "这是什么？", "Zhè shì shén me?", "Đây là cái gì?", "这", "这 是 什么", "Ghi nhớ: 这 đọc là zhè, nghĩa là “Này, đây”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Cái kia", "那", "nà", "Kia, đó", "那是老师。", "Nà shì lǎo shī.", "Kia là giáo viên.", "那", "那 是 老师", "Ghi nhớ: 那 đọc là nà, nghĩa là “Kia, đó”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Đúng, phải", "是", "shì", "Là, đúng", "我是越南人。", "Wǒ shì Yuè nán rén.", "Tôi là người Việt Nam.", "是", "我 是 越南人", "Ghi nhớ: 是 đọc là shì, nghĩa là “Là, đúng”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."], ["Tốt", "好", "hǎo", "Tốt, khỏe", "我很好。", "Wǒ hěn hǎo.", "Tôi rất khỏe.", "好", "我 很 好", "Ghi nhớ: 好 đọc là hǎo, nghĩa là “Tốt, khỏe”. Hãy nghe, nhắc lại, viết và đặt câu với từ này."]];let page='write',idx=0,quizIndex=0,quizScore=0,selected=null,locked=false,answer=[],speechText='',voiceSupported=!!(window.SpeechRecognition||window.webkitSpeechRecognition);const app=document.getElementById('app');let saved={};try{saved=JSON.parse(localStorage.getItem('hanzigo_progress')||'{}')}catch(e){}let xp=saved.xp||0,completed=saved.completed||[];function save(){localStorage.setItem('hanzigo_progress',JSON.stringify({xp,completed}));document.getElementById('xp').textContent=xp}function earn(n=10){xp+=n;save()}function done(i){if(!completed.includes(i)){completed.push(i);earn(20)}save()}function speak(t,rate=.82){
+ const bridges=[window.HanziGoAndroid,window.AndroidTTS,window.Android,window.HanziGoTTS,window.TextToSpeech];
+ for(const b of bridges){if(!b)continue;try{
+  if(typeof b.speak==='function'){b.speak(String(t),Number(rate));return}
+  if(typeof b.speakChinese==='function'){b.speakChinese(String(t));return}
+  if(typeof b.speakText==='function'){b.speakText(String(t));return}
+ }catch(e){console.warn('Android TTS:',e)}}
+ if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){alert('Thiết bị chưa hỗ trợ phát âm. Trên APK cần bật cầu nối Android TextToSpeech.');return}
+ try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t));u.lang='zh-CN';u.rate=rate;u.volume=1;const voices=window.speechSynthesis.getVoices();const v=voices.find(v=>v.lang.toLowerCase().startsWith('zh'));if(v)u.voice=v;window.speechSynthesis.speak(u)}catch(e){console.warn(e);alert('Không phát được âm thanh. Kiểm tra giọng đọc tiếng Trung trên thiết bị.')}
+}function setPage(p){if(page==='write'){pauseDemo();demoToken++}page=p;selected=null;locked=false;answer=[];document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.page===p));render()}document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>setPage(b.dataset.page));function card(icon,title,desc,p){return `<div class="card" onclick="setPage('${p}')"><div style="font-size:34px">${icon}</div><h3>${title}</h3><div class="muted small">${desc}</div></div>`}function home(){return `<section class="hero"><div><div class="tag" style="background:#ffffff30;color:#fff">🌱 Dành cho người mới bắt đầu</div><h1>Học tiếng Trung thật vui!</h1><p>Học từng từ, nghe từng câu, luyện viết và tích sao mỗi ngày.</p><br><button class="btn green" onclick="setPage('lessons')">Bắt đầu học →</button></div><div class="mascot">🐼</div></section><div class="stats"><div class="pill">📚 ${completed.length}/30 bài đã học</div><div class="pill">🏆 ${xp} điểm kinh nghiệm</div></div><div class="progress"><div style="width:${completed.length/30*100}%"></div></div><h2>Chọn kỹ năng luyện tập</h2><div class="cards">${card('📖','Giảng bài','Từ vựng, pinyin, ngữ pháp và ví dụ','lessons')}${card('🎧','Nghe hiểu','Nghe tiếng Trung và chọn nghĩa','listen')}${card('🎙️','Tập nói','Nói theo mẫu và nhận dạng giọng nói','speak')}${card('🔤','Bảng Pinyin','Học phát âm và 4 thanh điệu từ đầu','alphabet')}${card('✍️','Tập viết','Học nét cơ bản, tô chữ rồi tự viết','write')}${card('🧩','Ghép câu','Xếp các từ thành câu đúng','arrange')}${card('📝','Trắc nghiệm','30 câu, chấm điểm và giải thích','quiz')}</div><p class="note">💡 Hãy bắt đầu từ Bài 1. Âm thanh dùng giọng tiếng Trung có sẵn trong thiết bị; nhận dạng giọng nói phụ thuộc trình duyệt và có thể cần Internet.</p>`}function lessonsPage(){return `<h1>📖 Lộ trình 30 bài học</h1><p class="muted">Chọn bài để học theo thứ tự, hoặc mở bất kỳ bài nào bạn thích.</p><div class="lessonlist">${lessons.map((l,i)=>`<button class="lessonitem" onclick="idx=${i};setPage('detail')"><span class="tag">Bài ${i+1} ${completed.includes(i)?'✓':''}</span><strong>${l[1]}</strong><span>${l[2]}</span><br><small>${l[0]} · ${l[3]}</small></button>`).join('')}</div>`}function detail(){let l=lessons[idx];return `<div class="lessonhead"><button class="btn secondary" onclick="setPage('lessons')">← Danh sách bài</button><span class="tag">Bài ${idx+1}/30</span></div><div class="panel center" style="margin-top:20px"><div class="muted">${l[0]}</div><div class="bigchar">${l[1]}</div><div class="pinyin">${l[2]}</div><div class="meaning">${l[3]}</div><br><button class="btn" onclick="speak(lessons[idx][1])">🔊 Nghe phát âm</button></div><h2>🧠 Giảng bài dễ hiểu</h2><div class="explain">${l[9]}<br><strong>Mẹo học:</strong> Nhìn chữ → nghe 2 lần → đọc theo 3 lần → viết lại 3 lần.</div><h2>💬 Ví dụ giao tiếp</h2><div class="example"><strong style="font-size:27px">${l[4]}</strong><p class="pinyin" style="font-size:18px">${l[5]}</p><p>${l[6]}</p><button class="btn secondary" onclick="speak(lessons[idx][4],.75)">🔊 Nghe câu mẫu</button></div><div class="lessonhead"><button class="btn green" onclick="done(idx);celebrate('Hoàn thành bài học!','Bạn đã học xong bài này. +20 XP')">✓ Đã hiểu bài</button><button class="btn" onclick="idx=Math.min(29,idx+1);render()">Bài tiếp →</button></div>`}function opts(correct,seed){let arr=[correct];for(let n=1;n<lessons.length&&arr.length<4;n++){let x=lessons[(seed+n*7)%lessons.length][3];if(!arr.includes(x))arr.push(x)}return arr.map((v,i)=>({v,k:(i*3+seed)%11})).sort((a,b)=>a.k-b.k).map(x=>x.v)}function quizItem(mode){let l=lessons[quizIndex],correct=l[3],choices=opts(correct,quizIndex);return `<div class="lessonhead"><h1>${mode==='listen'?'🎧 Nghe và chọn nghĩa':'📝 Trắc nghiệm 30 câu'}</h1><span class="pill">${quizIndex+1}/30</span></div><div class="progress"><div style="width:${quizIndex/30*100}%"></div></div><div class="panel" style="margin-top:20px"><p class="muted">${mode==='listen'?'Nhấn nghe, sau đó chọn nghĩa tiếng Việt phù hợp.':'Chọn nghĩa đúng của từ tiếng Trung sau:'}</p><div class="center">${mode==='listen'?`<div style="font-size:80px">🎧</div><button class="btn" onclick="speak(lessons[quizIndex][1])">▶ Nghe từ</button>`:`<div class="bigchar">${l[1]}</div><div class="pinyin">${l[2]}</div>`}</div><div class="options">${choices.map((v,i)=>`<button class="option ${selected===v?'selected':''} ${locked&&v===correct?'correct':''} ${locked&&selected===v&&v!==correct?'wrong':''}" ${locked?'disabled':''} onclick="choose(${JSON.stringify(v).replace(/"/g,'&quot;')})">${String.fromCharCode(65+i)}. ${v}</button>`).join('')}</div>${locked?`<div class="feedback"><strong>${selected===correct?'🎉 Chính xác!':'💡 Chưa đúng.'}</strong><br>Đáp án: <b>${l[1]} (${l[2]}) = ${correct}</b>.<br>${l[9]}</div>`:''}<button class="btn" onclick="${locked?'nextQuiz()':'checkQuiz()'}" ${!locked&&selected===null?'disabled':''}>${locked?'Câu tiếp theo →':'Kiểm tra đáp án'}</button></div>`}function choose(v){if(!locked){selected=v;render()}}function checkQuiz(){if(selected===null)return;locked=true;if(selected===lessons[quizIndex][3]){quizScore++;earn(10);celebrate('Chính xác! 🎉','Đáp án đúng! +10 XP')}render()}function nextQuiz(){quizIndex++;selected=null;locked=false;if(quizIndex>=30){page='result'}render()}function result(){return `<div class="panel center" style="margin-top:30px"><div style="font-size:65px">🏆</div><h1>Hoàn thành thử thách!</h1><div class="result">${quizScore}/30</div><p>Đúng ${Math.round(quizScore/30*100)}% câu hỏi</p><p>${quizScore>=25?'Xuất sắc! Tiếp tục duy trì nhé!':'Hãy học lại các bài chưa nhớ và thử thêm lần nữa nhé!'}</p><button class="btn" onclick="quizIndex=0;quizScore=0;setPage('quiz')">🔄 Làm lại</button></div>`}function arrangePage(){let l=lessons[idx],parts=l[8].split(' ');return `<div class="lessonhead"><h1>🧩 Ghép câu</h1><span class="pill">Bài ${idx+1}/30</span></div><div class="panel"><p>Hãy xếp các mảnh thành câu có nghĩa: <b>${l[6]}</b></p><div class="answerbox">${answer.map((x,i)=>`<button class="tile" onclick="answer.splice(${i},1);render()">${x} ×</button>`).join('')}</div><p class="muted small">Nhấn các mảnh bên dưới theo thứ tự:</p><div class="tiles">${parts.filter((p,i)=>parts.slice(0,i+1).filter(x=>x===p).length>answer.filter(x=>x===p).length).reverse().map(p=>`<button class="tile" onclick="answer.push('${p}');render()">${p}</button>`).join('')}</div><br><button class="btn" onclick="const ok=answer.join(' ')===lessons[idx][8];if(ok){earn(10);celebrate('Ghép câu đúng! 🎉','Tuyệt vời! +10 XP')}else alert('Chưa đúng. Đáp án: '+lessons[idx][8])">Kiểm tra</button> <button class="btn secondary" onclick="answer=[];idx=(idx+1)%30;render()">Câu tiếp →</button><div class="example">${l[4]}<br><span class="muted">${l[5]}</span></div></div>`}const initials=[['b','b gần như p nhẹ'],['p','p bật hơi mạnh'],['m','m như tiếng Việt'],['f','ph/f'],['d','t nhẹ, ít bật hơi'],['t','th bật hơi'],['n','n'],['l','l'],['g','c/k nhẹ'],['k','kh bật hơi'],['h','h/kh từ cổ họng'],['j','âm gần ch, đầu lưỡi thấp'],['q','âm gần ch bật hơi'],['x','âm gần x, miệng hơi cười'],['zh','âm uốn lưỡi'],['ch','âm uốn lưỡi bật hơi'],['sh','âm sh uốn lưỡi'],['r','âm r uốn lưỡi'],['z','âm gần dz'],['c','âm gần ts bật hơi'],['s','âm x/s']];
+const finals=[['a','a'],['o','ô/o'],['e','ơ (gần đúng)'],['i','i'],['u','u'],['ü','uy tròn môi'],['ai','ai'],['ei','ây'],['ao','ao'],['ou','âu'],['an','an'],['en','ân'],['ang','ang'],['eng','âng'],['ong','ung'],['ia','ia'],['ie','iê'],['iao','iao'],['iu','iêu (viết tắt iou)'],['ian','iên'],['in','in'],['iang','iang'],['ing','inh'],['iong','iong'],['ua','oa'],['uo','uô'],['uai','oai'],['ui','uây (viết tắt uei)'],['uan','oan'],['un','uân (viết tắt uen)'],['uang','oang'],['ueng','uâng'],['üe','uyê'],['üan','uyên'],['ün','uyn'],['er','ơ cuộn lưỡi']];
+const tones=[['mā','Thanh 1 — cao, ngang','Giữ giọng đều và cao.'],['má','Thanh 2 — đi lên','Giọng đi từ thấp lên cao, như hỏi lại.'],['mǎ','Thanh 3 — xuống rồi lên','Giọng hạ thấp rồi nhấc lên khi đọc riêng.'],['mà','Thanh 4 — xuống mạnh','Giọng từ cao xuống thấp, dứt khoát.'],['ma','Thanh nhẹ','Đọc ngắn, nhẹ, không nhấn.']];
+function alphabetPage(){return `<h1>🔤 Bảng phiên âm Pinyin</h1><p class="muted">Tiếng Trung không dùng bảng chữ cái để viết từ như tiếng Việt. <b>Pinyin</b> dùng chữ cái Latin để ghi cách đọc chữ Hán. Học phát âm trước, rồi học chữ Hán nhé!</p><div class="panel"><h2>1. Sáu nguyên âm cơ bản</h2><div class="soundgrid">${finals.slice(0,6).map(x=>`<button class="sound" onclick="speak('${x[0]}',.65)"><b>${x[0]}</b><small>${x[1]}</small><span>🔊 Nghe</span></button>`).join('')}</div><p class="note">Mô tả bằng tiếng Việt chỉ giúp hình dung ban đầu. Hãy nghe âm mẫu để luyện đúng hơn, đặc biệt là e và ü.</p><h2>2. Phụ âm đầu (thanh mẫu)</h2><div class="soundgrid">${initials.map(x=>`<button class="sound" onclick="speak('${x[0]}a',.65)"><b>${x[0]}</b><small>${x[1]}</small><span>🔊 Nghe âm ghép</span></button>`).join('')}</div><p class="note">Phụ âm đầu thường không đọc riêng. Nút nghe phát một âm tiết ghép với a để dễ nhận biết; một số tổ hợp không tồn tại nên chỉ nên dùng âm mẫu minh họa này để làm quen.</p><h2>3. Vần (vận mẫu) thường gặp</h2><div class="soundgrid">${finals.slice(6).map(x=>`<button class="sound" onclick="speak('${x[0]}',.7)"><b>${x[0]}</b><small>${x[1]}</small><span>🔊 Nghe</span></button>`).join('')}</div><h2>4. Bốn thanh điệu và thanh nhẹ</h2><div class="soundgrid">${tones.map(x=>`<button class="sound" onclick="speak('${x[0]}',.65)"><b>${x[0]}</b><small>${x[1]}</small><span>🔊 Nghe</span></button>`).join('')}</div><div class="explain"><b>Ghép âm:</b> n + ǐ = nǐ (你: bạn); h + ǎo = hǎo (好: tốt). Ghép lại: <b>你好 nǐ hǎo</b> = xin chào. Khi hai thanh 3 đứng cạnh nhau, âm đầu thường đổi thành thanh 2 trong lời nói.<br><b>Nhớ:</b> a → ā á ǎ à; o → ō ó ǒ ò; e → ē é ě è; i → ī í ǐ ì; u → ū ú ǔ ù; ü → ǖ ǘ ǚ ǜ.</div><button class="btn" onclick="setPage('write')">Tiếp theo: Học viết nét cơ bản →</button></div>`}
+const strokes=[['一','Nét ngang (横 héng)','Kéo từ trái sang phải.'],['丨','Nét sổ (竖 shù)','Kéo từ trên xuống dưới.'],['丿','Nét phẩy (撇 piě)','Kéo từ trên phải xuống dưới trái.'],['㇏','Nét mác (捺 nà)','Kéo từ trên trái xuống dưới phải.'],['丶','Nét chấm (点 diǎn)','Chấm nhẹ từ trên xuống.'],['㇀','Nét hất (提 tí)','Hất từ dưới trái lên trên phải.'],['𠃍','Nét gập (横折 héng zhé)','Đi ngang rồi gập xuống.']];
+const practice=[["一", "yī", "Một", "1 nét: ngang từ trái sang phải."], ["二", "èr", "Hai", "2 nét ngang: nét trên ngắn trước, nét dưới dài sau."], ["三", "sān", "Ba", "3 nét ngang: trên → giữa → dưới."], ["十", "shí", "Mười", "2 nét: ngang trước, sổ dọc sau."], ["人", "rén", "Người", "2 nét: phẩy trái trước, mác phải sau."], ["大", "dà", "To, lớn", "3 nét: ngang → phẩy → mác."], ["口", "kǒu", "Miệng", "3 nét: sổ trái → ngang gập xuống → ngang đáy."], ["日", "rì", "Mặt trời, ngày", "4 nét: sổ trái → ngang gập → ngang trong → ngang đáy."], ["木", "mù", "Cây", "4 nét: ngang → sổ → phẩy → mác."], ["好", "hǎo", "Tốt", "6 nét: viết bộ 女 bên trái trước, rồi 子 bên phải."], ["上", "shàng", "Trên", "3 nét: sổ dọc ngắn trước → ngang ngắn bên phải → ngang dài dưới cùng."], ["下", "xià", "Dưới", "3 nét: ngang trên trước → sổ dọc xuống → chấm bên phải."], ["土", "tǔ", "Đất", "3 nét: ngang trên → sổ giữa → ngang dưới."], ["工", "gōng", "Công", "3 nét: ngang trên → sổ giữa → ngang dưới."], ["王", "wáng", "Vua", "4 nét: ngang trên → ngang giữa → sổ giữa → ngang dưới."], ["中", "zhōng", "Giữa", "4 nét: sổ bên trái → ngang gập xuống → ngang đóng khung → sổ dọc xuyên giữa."], ["山", "shān", "Núi", "3 nét: sổ gập ở giữa trước → sổ bên trái → sổ bên phải."], ["川", "chuān", "Sông", "3 nét: phẩy dọc bên trái → sổ dọc giữa → sổ dọc bên phải."], ["火", "huǒ", "Lửa", "4 nét: chấm trái → phẩy ngắn phải → phẩy dài trái → mác phải."], ["水", "shuǐ", "Nước", "4 nét: sổ móc ở giữa → nét hất bên trái → phẩy → mác bên phải."], ["月", "yuè", "Trăng", "4 nét: phẩy dọc bên trái → ngang gập móc bên phải → ngang trong trên → ngang trong dưới."], ["田", "tián", "Ruộng", "5 nét: sổ trái → ngang gập tạo khung → sổ giữa → ngang trong → ngang đáy."], ["目", "mù", "Mắt", "5 nét: sổ trái → ngang gập → hai nét ngang trong → ngang đáy."], ["白", "bái", "Trắng", "5 nét: phẩy nhỏ trên → sổ trái → ngang gập → ngang trong → ngang đáy."], ["手", "shǒu", "Tay", "4 nét: phẩy ngang trên → ngang giữa → ngang dưới → sổ móc."], ["不", "bù", "Không", "4 nét: ngang trên → phẩy trái → sổ dọc → chấm bên phải."], ["天", "tiān", "Trời", "4 nét: ngang trên → ngang dưới → phẩy → mác."], ["太", "tài", "Quá", "4 nét: ngang → phẩy → mác → chấm dưới."], ["小", "xiǎo", "Nhỏ", "3 nét: sổ móc ở giữa → chấm bên trái → chấm bên phải."], ["少", "shǎo", "Ít", "4 nét: sổ giữa → chấm trái → phẩy phải → phẩy dài cuối."], ["子", "zǐ", "Con", "3 nét: ngang gập → sổ móc → ngang dài."], ["女", "nǚ", "Nữ", "3 nét: nét gập phẩy bên trái → phẩy bên phải → ngang dài."], ["了", "le", "Rồi", "2 nét: ngang gập móc trước → sổ cong sau."], ["也", "yě", "Cũng", "3 nét: ngang gập móc → sổ cong → nét móc dọc."], ["你", "nǐ", "Bạn", "7 nét: viết bộ nhân đứng 亻 bên trái (phẩy → sổ), rồi viết 尔 bên phải từ trên xuống."], ["我", "wǒ", "Tôi", "7 nét: phẩy trên → ngang → sổ móc → hất → nét móc xiên → phẩy → chấm."], ["他", "tā", "Anh ấy", "5 nét: viết bộ nhân đứng 亻 bên trái trước, sau đó viết 也 bên phải."], ["们", "men", "Số nhiều", "5 nét: viết bộ nhân đứng 亻 bên trái trước, rồi viết 门 bên phải."], ["是", "shì", "Là", "9 nét: viết 日 ở trên trước, rồi viết phần dưới từ trên xuống; kết thúc bằng nét mác."], ["有", "yǒu", "Có", "6 nét: ngang → phẩy → sổ trái của 月 → ngang gập móc → hai nét ngang trong."], ["在", "zài", "Ở", "6 nét: ngang → phẩy → sổ dọc → ngang → sổ dọc → ngang cuối."], ["来", "lái", "Đến", "7 nét: ngang trên → chấm → phẩy → ngang giữa → sổ dọc → phẩy → mác."], ["去", "qù", "Đi", "5 nét: ngang → sổ dọc → ngang → nét gập dưới → chấm."], ["学", "xué", "Học", "8 nét: ba nét chấm/phẩy phía trên → chấm → ngang móc → ngang gập → sổ móc → ngang."], ["生", "shēng", "Sinh", "5 nét: phẩy ngắn → ngang trên → ngang giữa → sổ dọc → ngang dưới."], ["字", "zì", "Chữ", "6 nét: chấm → chấm → ngang móc (mái 宀), sau đó ngang gập → sổ móc → ngang (子)."], ["文", "wén", "Văn", "4 nét: chấm trên → ngang → phẩy trái → mác phải."], ["本", "běn", "Quyển", "5 nét: ngang → sổ → phẩy → mác → ngang ngắn dưới."], ["书", "shū", "Sách", "4 nét: ngang gập → ngang gập móc → sổ dọc → chấm."], ["门", "mén", "Cửa", "3 nét: chấm → sổ dọc bên trái → ngang gập móc bên phải."], ["开", "kāi", "Mở", "4 nét: ngang trên → ngang dưới → phẩy trái → sổ phải."], ["关", "guān", "Đóng", "6 nét: chấm → phẩy → ngang → ngang → phẩy → mác."], ["吃", "chī", "Ăn", "6 nét: viết 口 bên trái (3 nét) trước, rồi 乞 bên phải (3 nét)."], ["喝", "hē", "Uống", "12 nét: viết 口 bên trái (3 nét), sau đó viết 曷 bên phải (9 nét)."], ["看", "kàn", "Nhìn", "9 nét: viết phần trên của 手 trước, sau đó viết 目 bên dưới."], ["听", "tīng", "Nghe", "7 nét: viết 口 bên trái (3 nét), sau đó viết 斤 bên phải (4 nét)."], ["说", "shuō", "Nói", "9 nét: viết bộ ngôn 讠 bên trái (2 nét), rồi viết 兑 bên phải (7 nét)."], ["爱", "ài", "Yêu", "10 nét: viết 爫 phía trên, rồi phần giữa, cuối cùng viết 友 phía dưới."], ["家", "jiā", "Nhà", "10 nét: viết mái 宀 phía trên (3 nét), rồi viết 豕 phía dưới (7 nét)."], ["爸", "bà", "Bố", "8 nét: viết 父 phía trên (4 nét), sau đó viết 巴 phía dưới (4 nét)."], ["妈", "mā", "Mẹ", "6 nét: viết 女 bên trái (3 nét), sau đó viết 马 bên phải (3 nét)."]];
+let demoStyle='balanced';let writeIndex=0,writeMode='trace',strokeIndex=0,hasDrawn=false;let demoSpeed=1100,demoTimer=null,demoStep=0,demoPaths=[],demoLoadedChar='',demoToken=0,demoAnimating=false,demoProgress=0,demoFrame=null;const demoCache={};
+function writePage(){let l=practice[writeIndex],st=strokes[strokeIndex];return `<div class="lessonhead"><h1>✍️ Tập viết từ số 0</h1><span class="pill">Bài ${writeIndex+1}/${practice.length}</span></div><div class="panel"><div class="explain"><b>Quy tắc dễ nhớ:</b> Ngang trước sổ sau; trên trước dưới sau; trái trước phải sau; ngoài trước trong sau (thường đóng khung cuối). Hãy tập từng nét trước khi viết cả chữ.</div><h2>① Làm quen 7 nét cơ bản</h2><div class="strokegrid">${strokes.map((x,i)=>`<button class="strokechip ${i===strokeIndex?'chosen':''}" onclick="strokeIndex=${i};render()"><b>${x[0]}</b><small>${x[1]}</small></button>`).join('')}</div><div class="example"><strong>${st[1]}</strong><p>${st[2]}</p><p class="note">Dùng ngón tay vẽ nét này trong không khí 3 lần rồi tập trên bảng.</p></div><h2>② Chọn bài luyện viết</h2><div class="write-picker"><label for="writeSelect"><b>Chọn chữ muốn luyện (${practice.length} bài):</b></label><select id="writeSelect" onchange="writeIndex=Number(this.value);render()">${practice.map((x,i)=>`<option value="${i}" ${i===writeIndex?"selected":""}>Bài ${i+1}: ${x[0]} · ${x[1]} · ${x[2]}</option>`).join("")}</select></div><h2>Học viết từng chữ đơn giản</h2><div class="lessonhead"><button class="btn secondary" onclick="writeIndex=(writeIndex+practice.length-1)%practice.length;render()">← Chữ trước</button><div class="center"><div class="bigchar" style="font-size:75px;margin:0">${l[0]}</div><div class="pinyin">${l[1]} · ${l[2]}</div></div><button class="btn secondary" onclick="writeIndex=(writeIndex+1)%practice.length;render()">Chữ tiếp →</button></div><div class="example"><b>Thứ tự nét:</b> ${l[3]}<br><button class="btn secondary" onclick="speak(practice[writeIndex][0])">🔊 Nghe đọc chữ</button></div><h2>③ Xem demo viết chữ từng nét</h2><div class="demo-layout"><div class="demo-visual"><div class="demo-box"><svg id="strokeDemo" viewBox="0 0 1024 1024" aria-label="Minh họa thứ tự viết chữ Hán"></svg></div></div><div class="demo-controls"><div class="timeline-wrap"><div class="timeline-top"><span>🎞️ Thanh tua nét chữ</span><span id="demoTime">0% · 0/0 nét</span></div><input id="demoTimeline" class="timeline-slider" type="range" min="0" max="1000" step="1" value="0" disabled aria-label="Kéo để tua tiến hoặc lùi quá trình viết chữ" oninput="seekDemo(Number(this.value)/1000)"><div class="timeline-marks"><span>0% · Bắt đầu</span><span>50%</span><span>100% · Hoàn thành</span></div><p class="note" style="margin:8px 0 0">Kéo chấm tròn sang trái hoặc phải để xem lại bất kỳ nét nào. Có thể tiếp tục phát từ vị trí vừa tua.</p></div><div class="modebar demo-action-row"><button class="btn" onclick="playDemo()">▶ Xem cách viết</button><button class="btn secondary" onclick="pauseDemo()">⏸ Tạm dừng</button><button class="btn secondary" onclick="resetDemo()">↺ Xem lại từ đầu</button></div><label for="demoSpeed"><b>Tốc độ:</b></label> <select id="demoSpeed" onchange="demoSpeed=Number(this.value)"><option value="1800">Chậm</option><option value="1100" selected>Bình thường</option><option value="550">Nhanh</option></select><div id="demoStatus" class="meaning">Nhấn ▶ để xem cách viết</div><p class="muted small">Chữ Microsoft YaHei giữ nguyên màu xám; mũi tên chỉ hướng từng nét, không tô chữ.</p><div class="modebar"><button id="styleNatural" class="btn secondary" onclick="setDemoStyle('natural')">✍️ Nét viết tự nhiên</button><button id="styleBalanced" class="btn" onclick="setDemoStyle('balanced')">▤ Nét hiện đại cân đối</button></div><p class="note" id="demoNote">Demo sử dụng dữ liệu nét chữ khi có sẵn; cần kết nối Internet trong lần tải đầu.</p></div></div><section id="hgWritingArea"><div class="hg-writing-heading"><h2>④ Luyện tô rồi tự viết</h2></div><div class="modebar"><button class="btn ${writeMode==='trace'?'':'secondary'}" onclick="writeMode='trace';render()">A. Tô theo chữ mờ</button><button class="btn ${writeMode==='free'?'':'secondary'}" onclick="writeMode='free';render()">B. Tự viết</button></div><p class="muted">${writeMode==='trace'?'Dùng chuột hoặc ngón tay tô đè lên chữ xám. Viết theo thứ tự nét phía trên.':'Nhìn chữ mẫu ở trên rồi viết vào ô trống.'}</p><div class="hg-board-wrap"><div id="hgLandscapeTip"></div><canvas id="draw" class="canvas" width="800" height="440" aria-label="Bảng luyện viết chữ Hán"></canvas><button type="button" id="hgFullWriteBtn" class="btn secondary hg-full-btn" onclick="toggleWritingFullscreen()" aria-pressed="false">⛶ Phóng to</button></div><div class="lessonhead" style="margin-top:15px"><button class="btn secondary" onclick="clearCanvas()">🧽 Xóa để viết lại</button><span id="writeScore" class="tag" aria-live="polite">✍️ Viết đủ nét và giống mẫu ≥70%</span></div><p class="note">Ứng dụng tự so khớp hình dáng chữ với mẫu sau mỗi lần nhấc bút. Chỉ tán thưởng khi hình dáng giống mẫu từ 70% và số nét vẽ bằng số nét của chữ mẫu. Mỗi lần đặt bút rồi nhấc bút được tính là một nét; chưa kiểm tra chính xác thứ tự và hướng đi từng nét.</p></section></div>`}
+function paintGuide(){let c=document.getElementById('draw');if(!c)return;let ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#fff';ctx.fillRect(0,0,800,440);ctx.save();ctx.strokeStyle='#e6d9e7';ctx.lineWidth=2;ctx.setLineDash([10,9]);ctx.beginPath();ctx.moveTo(400,0);ctx.lineTo(400,440);ctx.moveTo(0,220);ctx.lineTo(800,220);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle='#d8ddea';ctx.strokeRect(12,12,776,416);ctx.restore();if(writeMode==='trace'){ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='500 310px "Microsoft YaHei","Noto Sans CJK SC","Noto Sans SC","PingFang SC",sans-serif';ctx.fillStyle='#d7d9e1';ctx.fillText(practice[writeIndex][0],400,224);ctx.restore()}}
+// Bản 2: chỉ thay màu các pixel có sẵn của chính Microsoft YaHei.
+// Do đó hình mực tím và chữ xám luôn trùng khít từng pixel ở mọi thời điểm.
+function preparePixelDemo(ch,canvas,paths){
+ const w=canvas.width,h=canvas.height,ctx=canvas.getContext('2d',{willReadFrequently:true});
+ const base=document.createElement('canvas');base.width=w;base.height=h;
+ const c=base.getContext('2d',{willReadFrequently:true});
+ c.clearRect(0,0,w,h);c.fillStyle='#e5e5ec';
+ c.font='500 395px "Microsoft YaHei","Microsoft YaHei UI","Noto Sans CJK SC",sans-serif';
+ c.textAlign='center';c.textBaseline='middle';c.fillText(ch,w/2,h/2);
+ const img=c.getImageData(0,0,w,h),pixels=img.data;
+ // Đường trung tuyến gốc dùng để phân vùng; không nắn đường làm lệch nét.
+ const samples=[];
+ paths.forEach((p,i)=>{
+  const coords=p.coords;
+  for(let j=0;j<coords.length-1;j++){
+   const a=coords[j],b=coords[j+1],len=Math.hypot(b[0]-a[0],b[1]-a[1]);
+   const steps=Math.max(1,Math.ceil(len/22));
+   for(let k=0;k<=steps;k++){
+    const t=k/steps;
+    samples.push([((a[0]+(b[0]-a[0])*t)/2),((900-a[1]-(b[1]-a[1])*t)/2),i,(j+t)/(coords.length-1)]);
+   }
+  }
+ });
+ const owners=new Uint16Array(w*h),positions=new Float32Array(w*h),active=[];
+ // Các điểm không thuộc glyph giữ nguyên trong suốt; không bao giờ tô tràn.
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const id=y*w+x;if(pixels[id*4+3]===0)continue;
+  let best=Infinity,owner=0,progress=0;
+  for(let k=0;k<samples.length;k++){
+   const s=samples[k],dx=x-s[0],dy=y-s[1],dist=dx*dx+dy*dy;
+   if(dist<best){best=dist;owner=s[2];progress=s[3];}
+  }
+  owners[id]=owner;positions[id]=progress;active.push(id);
+ }
+ canvas._pixelData={base:img,owners,positions,active,ctx};
+ renderPixelDemo(canvas,0,0);
+}
+function renderPixelDemo(canvas,step,fraction){
+ const d=canvas._pixelData;if(!d)return;
+ const img=new ImageData(new Uint8ClampedArray(d.base.data),canvas.width,canvas.height);
+ const a=img.data;
+ for(const id of d.active){
+  const stroke=d.owners[id];
+  if(stroke<step||(stroke===step&&d.positions[id]<=fraction)){
+   const j=id*4;a[j]=101;a[j+1]=70;a[j+2]=214;
+  }
+ }
+ d.ctx.putImageData(img,0,0);
+}
+async function initStrokeDemo(){
+ pauseDemo();demoStep=0;demoPaths=[];demoProgress=0;const ch=practice[writeIndex][0],token=++demoToken,svg=document.getElementById('strokeDemo');if(!svg)return;
+ svg.parentElement.querySelectorAll('.demo-ink-canvas,.demo-arrow-overlay').forEach(el=>el.remove());
+ svg.innerHTML='<rect width="1024" height="1024" fill="#fff"/><path d="M512 0V1024M0 512H1024" stroke="#e8dff1" stroke-width="5" stroke-dasharray="18 16"/><rect x="16" y="16" width="992" height="992" fill="none" stroke="#e8dff1" stroke-width="5"/>';
+ document.getElementById('demoStatus').textContent='Đang tải mẫu nét chữ…';
+ try{const data=demoCache[ch]||(demoCache[ch]=await fetch('https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/'+encodeURIComponent(ch)+'.json').then(r=>{if(!r.ok)throw Error('Không tải được dữ liệu');return r.json()}));if(token!==demoToken)return;
+   const ns='http://www.w3.org/2000/svg';
+    // Hai chế độ cùng sử dụng một đường hình học cho nền xám và nét tím.
+    const group=document.createElementNS(ns,'g');group.setAttribute('transform','translate(0 900) scale(1 -1)');svg.appendChild(group);
+    demoPaths=data.medians.map((points,i)=>{
+      const coords=points.map(p=>[p[0],p[1]]);
+      const makeD=(mode)=>{
+        if(!coords.length)return '';
+        if(mode==='balanced'){
+          // Kiểu chữ in hiện đại như 上: ngang thật ngang, sổ thật thẳng,
+          // vẫn giữ các góc gập và nét xiên đặc trưng của chữ.
+          if(coords.length===1)return 'M'+coords[0].join(' ');
+          const first=coords[0],last=coords[coords.length-1];
+          const dx=last[0]-first[0],dy=last[1]-first[1];
+          const xs=coords.map(p=>p[0]),ys=coords.map(p=>p[1]);
+          const spreadX=Math.max(...xs)-Math.min(...xs);
+          const spreadY=Math.max(...ys)-Math.min(...ys);
+          const deviation=(a,b)=>Math.max(...coords.map(p=>Math.abs((p[0]-a[0])*(b[1]-a[1])-(p[1]-a[1])*(b[0]-a[0]))/(Math.hypot(b[0]-a[0],b[1]-a[1])||1)));
+          // Nét ngang và nét sổ đơn: loại bỏ độ cong lệch, căn thẳng theo trục.
+          if(Math.abs(dx)>70 && Math.abs(dy)<Math.abs(dx)*.28 && spreadY<Math.max(85,spreadX*.23)){
+            const y=(first[1]+last[1])/2;
+            return `M${first[0]} ${y} L${last[0]} ${y}`;
+          }
+          if(Math.abs(dy)>70 && Math.abs(dx)<Math.abs(dy)*.28 && spreadX<Math.max(85,spreadY*.23)){
+            const x=(first[0]+last[0])/2;
+            return `M${x} ${first[1]} L${x} ${last[1]}`;
+          }
+          if(deviation(first,last)<22)return `M${first.join(' ')} L${last.join(' ')}`;
+          // Với nét gập: bảo toàn đỉnh gập, nắn các đoạn gần ngang/dọc.
+          const pts=[first];
+          for(let j=1;j<coords.length-1;j++){
+            const a=pts[pts.length-1],v=coords[j],c=coords[j+1];
+            const cross=Math.abs((v[0]-a[0])*(c[1]-a[1])-(v[1]-a[1])*(c[0]-a[0]));
+            if(cross/(Math.hypot(c[0]-a[0],c[1]-a[1])||1)>18)pts.push(v);
+          }
+          pts.push(last);
+          const out=[pts[0].slice()];
+          for(let j=1;j<pts.length;j++){
+            const prev=out[out.length-1],next=pts[j].slice();
+            const ddx=next[0]-prev[0],ddy=next[1]-prev[1];
+            if(Math.abs(ddy)<Math.abs(ddx)*.18)next[1]=prev[1];
+            else if(Math.abs(ddx)<Math.abs(ddy)*.18)next[0]=prev[0];
+            out.push(next);
+          }
+          return out.map((p,j)=>(j?'L':'M')+p[0]+' '+p[1]).join(' ');
+        }
+        let d='M'+coords[0][0]+' '+coords[0][1];
+        for(let j=1;j<coords.length-1;j++)d+=' Q'+coords[j][0]+' '+coords[j][1]+' '+((coords[j][0]+coords[j+1][0])/2)+' '+((coords[j][1]+coords[j+1][1])/2);
+        if(coords.length>1)d+=' L'+coords[coords.length-1][0]+' '+coords[coords.length-1][1];
+        return d;
+      };
+      const guide=document.createElementNS(ns,'path');
+      const path=document.createElementNS(ns,'path');
+      for(const el of [guide,path]){
+        el.setAttribute('fill','none');el.setAttribute('stroke-width','60');
+        el.setAttribute('stroke-linecap',demoStyle==='natural'?'round':'butt');
+        el.setAttribute('stroke-linejoin','round');group.appendChild(el);
+      }
+      guide.setAttribute('stroke','#e5e5ec');path.setAttribute('stroke','#6546d6');
+      const item={guide,shape:path,centerline:path,coords,makeD,length:0};
+      return item;
+    });
+    // Bản 2: dùng chính glyph của phông chữ mẫu để nét tím khớp nét xám.
+     // Vẽ nền và mực từ CÙNG MỘT bitmap font, không sử dụng outline font khác.
+     // Mỗi pixel của glyph được gán cho một nét dựa trên trung tuyến gần nhất.
+     const box=svg.parentElement;
+     box.querySelectorAll('.demo-ink-canvas,.demo-arrow-overlay').forEach(el=>el.remove());
+           const canvas=document.createElement('canvas');canvas.className='demo-ink-canvas';
+      canvas.width=512;canvas.height=512;box.appendChild(canvas);
+      const ctx=canvas.getContext('2d');ctx.fillStyle='#e0e1e9';
+      ctx.font='500 395px "Microsoft YaHei","Microsoft YaHei UI","Noto Sans CJK SC",sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ch,256,256);
+      svg._pixelCanvas=canvas;
+      // Khớp trung tuyến dữ liệu với vùng mực thực tế của glyph Microsoft YaHei.
+      // Hiệu chỉnh tỉ lệ / vị trí, rồi hút từng điểm về pixel thuộc nét gần nhất.
+      const image=ctx.getImageData(0,0,512,512).data;
+      const ink=[];let minX=512,minY=512,maxX=0,maxY=0;
+      for(let y=25;y<487;y+=2)for(let x=25;x<487;x+=2){
+        if(image[(y*512+x)*4+3]>100){ink.push([x,y]);minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}
+      }
+      const all=demoPaths.flatMap(p=>p.coords.map(q=>[q[0]/2,(900-q[1])/2]));
+      const bx0=Math.min(...all.map(q=>q[0])),bx1=Math.max(...all.map(q=>q[0]));
+      const by0=Math.min(...all.map(q=>q[1])),by1=Math.max(...all.map(q=>q[1]));
+      const sx=(maxX-minX)/Math.max(1,bx1-bx0),sy=(maxY-minY)/Math.max(1,by1-by0);
+      // Không kéo giãn riêng từng nét: cùng một phép biến đổi cho toàn chữ.
+      const overlay=document.createElementNS(ns,'svg');overlay.setAttribute('viewBox','0 0 512 512');
+      overlay.setAttribute('class','demo-arrow-overlay');box.appendChild(overlay);svg._arrowOverlay=overlay;
+      demoPaths.forEach((p,i)=>{
+        const raw=p.coords.map(q=>[minX+(q[0]/2-bx0)*sx,minY+((900-q[1])/2-by0)*sy]);
+        const points=raw.map((q,j)=>{
+          let best=q,score=Infinity;
+          // Hút nhẹ về vùng mực; giới hạn để tránh nhảy sang nét khác.
+          for(const v of ink){const dx=v[0]-q[0],dy=v[1]-q[1],d=dx*dx+dy*dy;
+            if(d<score&&d<18*18){score=d;best=v;}
+          }
+          return [q[0]*.45+best[0]*.55,q[1]*.45+best[1]*.55];
+        });
+        if(points.length<2)return;
+        let d='M'+points[0].join(' ');
+        for(let j=1;j<points.length;j++)d+=' L'+points[j].join(' ');
+        const line=document.createElementNS(ns,'path');line.setAttribute('d',d);
+        line.setAttribute('fill','none');line.setAttribute('stroke','#7050d9');
+        line.setAttribute('stroke-width','4');line.setAttribute('stroke-linecap','round');
+        line.setAttribute('stroke-linejoin','round');overlay.appendChild(line);
+        const head=document.createElementNS(ns,'path');head.setAttribute('fill','#7050d9');overlay.appendChild(head);
+        const number=document.createElementNS(ns,'g');
+        const start=points[0],cx=start[0],cy=start[1];
+        const bubble=document.createElementNS(ns,'circle');bubble.setAttribute('cx',cx);bubble.setAttribute('cy',cy);
+        bubble.setAttribute('r','12');bubble.setAttribute('fill','#fff');bubble.setAttribute('stroke','#7050d9');bubble.setAttribute('stroke-width','2.5');
+        const label=document.createElementNS(ns,'text');label.setAttribute('x',cx);label.setAttribute('y',cy+4.5);
+        label.setAttribute('text-anchor','middle');label.setAttribute('font-family','Arial,sans-serif');
+        label.setAttribute('font-size','13');label.setAttribute('font-weight','bold');label.setAttribute('fill','#5632c1');label.textContent=String(i+1);
+        number.appendChild(bubble);number.appendChild(label);overlay.appendChild(number);
+        p.arrowLine=line;p.arrowHead=head;p.arrowNumber=number;p.arrowLength=line.getTotalLength();
+      });
+applyDemoGeometry();
+const pen=document.createElementNS(ns,'circle');pen.setAttribute('r','23');pen.setAttribute('fill','#ff9b35');pen.setAttribute('stroke','#fff');pen.setAttribute('stroke-width','8');pen.style.display='none';group.appendChild(pen);svg._pen=pen;
+document.getElementById('demoStatus').textContent='Sẵn sàng · '+demoPaths.length+' nét';document.getElementById('demoTimeline').disabled=false;updateDemoTimeline();document.getElementById('demoNote').textContent='Bản 2 giữ nguyên chữ Microsoft YaHei màu xám; mũi tên tím chỉ thứ tự và hướng viết, không tô màu chữ. Các mũi tên có số thứ tự và được căn chỉnh theo vùng nét của font; nét phức tạp vẫn có thể lệch nhẹ.';
+ }catch(e){if(token!==demoToken)return;document.getElementById('demoStatus').textContent='Chưa tải được demo nét chữ';document.getElementById('demoNote').textContent='Cần Internet để tải dữ liệu thứ tự nét. Bạn vẫn có thể tô chữ và tự viết ở dưới.';}
+}
+  function applyDemoGeometry(){
+    for(const p of demoPaths){
+      const d=p.makeD(demoStyle);p.guide.setAttribute('d',d);p.shape.setAttribute('d',d);
+      p.length=Math.max(.001,p.shape.getTotalLength());
+      p.shape.style.strokeDasharray=p.length+' '+(p.length+2);
+      p.guide.style.display=demoStyle==='balanced'?'none':'';
+      p.shape.style.display=demoStyle==='balanced'?'none':'';
+    }
+    const svg=document.getElementById('strokeDemo');
+    if(svg&&svg._pixelCanvas)svg._pixelCanvas.style.display=demoStyle==='balanced'?'':'none';
+     if(svg&&svg._arrowOverlay)svg._arrowOverlay.style.display=demoStyle==='balanced'?'':'none';
+    renderDemoPosition();
+  }
+ function setDemoStyle(style){
+   if(style!=='natural'&&style!=='balanced')return;
+   pauseDemo();demoStyle=style;
+   const a=document.getElementById('styleNatural'),b=document.getElementById('styleBalanced');
+   if(a)a.className='btn'+(style==='natural'?'':' secondary');
+   if(b)b.className='btn'+(style==='balanced'?'':' secondary');const n=document.getElementById('naturalMode'),m=document.getElementById('balancedMode');if(n)n.className='btn'+(style==='natural'?'':' secondary');if(m)m.className='btn'+(style==='balanced'?'':' secondary');
+   if(demoPaths.length)applyDemoGeometry();
+ }
+ function updateDemoTimeline(){const slider=document.getElementById('demoTimeline'),label=document.getElementById('demoTime');if(!slider||!label)return;const total=demoPaths.length;const value=total?(demoStep+demoProgress)/total:0;slider.value=String(Math.round(value*1000));label.textContent=Math.round(value*100)+'% · '+Math.min(demoStep,total)+'/'+total+' nét';}
+  function renderDemoPosition(){
+    const n=demoPaths.length;if(!n)return;
+    demoPaths.forEach((p,i)=>{const f=i<demoStep?1:i===demoStep?demoProgress:0;
+      p.centerline.style.strokeDashoffset=String(p.length*(1-f));});
+    const svg=document.getElementById('strokeDemo');
+    if(svg&&svg._arrowOverlay&&demoStyle==='balanced')demoPaths.forEach((p,i)=>{
+       if(!p.arrowLine)return;
+       const f=i<demoStep?1:i===demoStep?demoProgress:0;
+       const len=p.arrowLength;
+       p.arrowLine.style.strokeDasharray=`${len} ${len+2}`;
+       p.arrowLine.style.strokeDashoffset=String(len*(1-f));
+       p.arrowLine.style.opacity=f>0?'1':'0';
+       p.arrowHead.style.display=f>0?'':'none';
+       if(p.arrowNumber)p.arrowNumber.style.display=f>0?'':'none';
+       if(f>0){const dist=Math.max(0.01,Math.min(len,len*f));
+         const tip=p.arrowLine.getPointAtLength(dist),before=p.arrowLine.getPointAtLength(Math.max(0,dist-7));
+         const angle=Math.atan2(tip.y-before.y,tip.x-before.x);
+         const back=12,half=6,xx=tip.x-back*Math.cos(angle),yy=tip.y-back*Math.sin(angle);
+         p.arrowHead.setAttribute('d',`M${tip.x} ${tip.y} L${xx-half*Math.sin(angle)} ${yy+half*Math.cos(angle)} L${xx+half*Math.sin(angle)} ${yy-half*Math.cos(angle)} Z`);
+       }
+     });
+    if(svg&&svg._pen){if(demoStep>=n){svg._pen.style.display='none'}else{
+      const p=demoPaths[demoStep],pt=p.centerline.getPointAtLength(p.length*demoProgress);
+      svg._pen.setAttribute('cx',pt.x);svg._pen.setAttribute('cy',pt.y);
+      svg._pen.style.display=demoStyle==='balanced'?'none':'';
+    }}updateDemoTimeline();
+  }
+ function seekDemo(fraction){if(!demoPaths.length)return;pauseDemo();const pos=Math.max(0,Math.min(1,fraction))*demoPaths.length;demoStep=Math.min(demoPaths.length,Math.floor(pos));demoProgress=demoStep===demoPaths.length?0:pos-demoStep;renderDemoPosition();const status=document.getElementById('demoStatus');if(status)status.textContent=demoStep===demoPaths.length?'✓ Đã xem hết '+demoPaths.length+' nét':'⏪ Đang tua · nét '+(demoStep+1)+' / '+demoPaths.length;}
+ function pauseDemo(){if(demoFrame!==null){cancelAnimationFrame(demoFrame);demoFrame=null}demoAnimating=false}
+ function resetDemo(){pauseDemo();demoStep=0;demoProgress=0;renderDemoPosition();const svg=document.getElementById('strokeDemo');if(svg&&svg._pen)svg._pen.style.display='none';const status=document.getElementById('demoStatus');if(status&&demoPaths.length)status.textContent='Sẵn sàng · '+demoPaths.length+' nét'}
+ function playDemo(){if(!demoPaths.length||demoAnimating)return;if(demoStep>=demoPaths.length)resetDemo();demoAnimating=true;let last=null;
+ function frame(now){if(!demoAnimating)return;if(last===null)last=now;const elapsed=Math.min(70,now-last);last=now;demoProgress+=elapsed/demoSpeed;
+ while(demoProgress>=1&&demoStep<demoPaths.length){demoProgress-=1;demoStep++;}
+ if(demoStep>=demoPaths.length){demoProgress=0;renderDemoPosition();pauseDemo();const status=document.getElementById('demoStatus');if(status)status.textContent='✓ Hoàn thành chữ '+practice[writeIndex][0]+' ('+demoPaths.length+' nét)';return;}
+ renderDemoPosition();const status=document.getElementById('demoStatus');if(status)status.textContent='✍️ Đang đưa bút viết nét '+(demoStep+1)+' / '+demoPaths.length;demoFrame=requestAnimationFrame(frame);
+ }demoFrame=requestAnimationFrame(frame)}
+// Tự đánh giá hình dáng bằng mặt nạ nét viết và mặt nạ chữ mẫu.
+// Chỉ chấm sau khi nhấc bút; không cộng XP lặp lại trong cùng một lượt viết.
+let writeInk=null,writeWon=false,writeLength=0,writeStrokeCount=0;
+function shapeScore(){
+ if(!writeInk||writeLength<75||writeStrokeCount<1)return 0;
+ const N=100, sample=document.createElement('canvas');sample.width=N;sample.height=N;
+ const sc=sample.getContext('2d',{willReadFrequently:true});
+ const target=document.createElement('canvas');target.width=800;target.height=440;
+ const tc=target.getContext('2d',{willReadFrequently:true});
+ tc.font='500 310px "Microsoft YaHei","Noto Sans CJK SC","Noto Sans SC","PingFang SC",sans-serif';
+ tc.textAlign='center';tc.textBaseline='middle';tc.fillStyle='#000';tc.fillText(practice[writeIndex][0],400,224);
+ function bounds(canvas){const x=canvas.getContext('2d').getImageData(0,0,800,440).data;let l=800,t=440,r=-1,b=-1,count=0;
+ for(let y=0;y<440;y+=2)for(let xx=0;xx<800;xx+=2){if(x[(y*800+xx)*4+3]>65){l=Math.min(l,xx);r=Math.max(r,xx);t=Math.min(t,y);b=Math.max(b,y);count++}}
+ return count?{l,t,w:r-l+2,h:b-t+2}:null}
+ const tb=bounds(target),ub=bounds(writeInk);if(!tb||!ub)return 0;
+ // Không cho một chấm nhỏ hoặc nét cực ngắn được phóng to thành cả chữ.
+ if(ub.w<18||ub.h<7)return 0;
+ function raster(canvas,b,normalize){sc.clearRect(0,0,N,N);
+ if(normalize){const scale=Math.min(80/b.w,80/b.h);sc.drawImage(canvas,b.l,b.t,b.w,b.h,(N-b.w*scale)/2,(N-b.h*scale)/2,b.w*scale,b.h*scale)}
+ else{sc.drawImage(canvas,0,0,800,440,0,0,N,N)}
+ const d=sc.getImageData(0,0,N,N).data,out=new Uint8Array(N*N);
+ for(let i=0;i<out.length;i++)out[i]=d[i*4+3]>42?1:0;return out}
+ // Chuẩn hóa kích thước cho cả hai chế độ; chế độ tô còn kiểm tra vị trí tương đối.
+ const t=raster(target,tb,true),u=raster(writeInk,ub,true);
+ function close(mask,x,y,r){for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+ if(dx*dx+dy*dy>r*r)continue;const xx=x+dx,yy=y+dy;if(xx>=0&&xx<N&&yy>=0&&yy<N&&mask[yy*N+xx])return true}return false}
+ let totalU=0,totalT=0,matchedU=0,matchedT=0;
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++){const i=y*N+x;
+ if(u[i]){totalU++;if(close(t,x,y,5))matchedU++}
+ if(t[i]){totalT++;if(close(u,x,y,5))matchedT++}}
+ if(!totalU||!totalT)return 0;
+ const precision=matchedU/totalU,recall=matchedT/totalT;
+ let score=2*precision*recall/(precision+recall||1);
+ // Không chấp nhận nét quá ít hoặc tỷ lệ chữ bị biến dạng rõ rệt.
+ const aspectU=ub.w/ub.h,aspectT=tb.w/tb.h;
+ score*=Math.min(1,Math.min(aspectU/aspectT,aspectT/aspectU)*1.25);
+ if(writeMode==='trace'){
+ const cxU=ub.l+ub.w/2,cyU=ub.t+ub.h/2,cxT=tb.l+tb.w/2,cyT=tb.t+tb.h/2;
+ const distance=Math.hypot((cxU-cxT)/800,(cyU-cyT)/440);
+ score*=Math.max(0,1-distance*1.6);
+ }
+ return Math.max(0,Math.min(100,Math.round(score*100)));
+}
+function expectedWriteStrokes(){
+ // Dùng số nét khai báo trong bài học; không phụ thuộc việc tải demo qua Internet.
+ const desc=practice[writeIndex][3]||'';
+ const match=desc.match(/(\d+)\s*nét/i);
+ if(match)return Number(match[1]);
+ // Dự phòng cho bài có dữ liệu nét nhưng thiếu mô tả số nét.
+ if(demoPaths&&demoPaths.length&&demoLoadedChar===practice[writeIndex][0])return demoPaths.length;
+ return null;
+}
+function evaluateWriting(){
+ if(writeWon||!writeInk)return;
+ const score=shapeScore(),label=document.getElementById('writeScore');
+ const expected=expectedWriteStrokes();
+ const countText=expected===null?`${writeStrokeCount} nét (chưa có dữ liệu mẫu)`:`${writeStrokeCount}/${expected} nét`;
+ if(label)label.textContent=`✍️ Giống mẫu ${score}% · ${countText}`;
+ // Không công nhận nếu số nét thiếu/thừa hoặc chưa biết số nét chuẩn.
+ if(expected===null)return;
+ if(writeStrokeCount!==expected){
+   if(label)label.textContent=`${writeStrokeCount<expected?'✍️ Chưa đủ nét':'⚠️ Thừa nét'}: ${countText} · Giống ${score}%`;
+   return;
+ }
+ if(score<70){if(label)label.textContent=`✍️ Đủ ${expected} nét · Giống ${score}% (cần 70%)`;return;}
+ writeWon=true;earn(5);
+ if(label)label.textContent=`✅ Đủ ${expected} nét · Giống ${score}% · +5 XP`;
+ celebrate('Viết giỏi quá! 🎉',`Bạn đã viết đủ ${expected} nét, hình dáng giống mẫu ${score}%! +5 XP`);
+}
+
+// Keep the celebration dialog inside the browser fullscreen element.
+// Browsers hide fixed overlays outside the Fullscreen API top layer.
+function syncWritingCelebrateHost(enable){
+ const modal=document.getElementById('hgCelebrate');
+ const area=document.getElementById('hgWritingArea');
+ if(!modal)return;
+ if(enable&&area){area.appendChild(modal)}
+ else if(modal.parentElement!==document.body){document.body.appendChild(modal)}
+}
+async function hgLockLandscape(){try{if(window.HanziGoOrientation&&typeof window.HanziGoOrientation.landscape==='function'){window.HanziGoOrientation.landscape();return;} }catch(e){}try{if(screen.orientation&&typeof screen.orientation.lock==='function')await screen.orientation.lock('landscape')}catch(e){/* Browser or Android WebView may not permit orientation lock. */}}
+function toggleWritingFullscreen(force){
+ const area=document.getElementById('hgWritingArea');if(!area)return;
+ const enable=typeof force==='boolean'?force:!area.classList.contains('hg-writing-full');
+ // Only the current writing section is promoted into an isolated overlay.
+ // Never zoom the document, WebView, viewport or other application pages.
+ area.classList.toggle('hg-writing-full',enable);
+ document.body.classList.toggle('hg-writing-lock',enable);
+ syncWritingCelebrateHost(enable);
+ const btn=document.getElementById('hgFullWriteBtn');
+ if(btn){btn.textContent=enable?'↙ Thu nhỏ bảng viết':'⛶ Phóng to';btn.setAttribute('aria-pressed',String(enable));}
+ if(enable){area.scrollTop=0;} // Do not change Activity orientation: Android may recreate WebView and reset to Home.
+ // Closing only removes the writing overlay; current page and canvas stay mounted.
+}
+document.addEventListener('fullscreenchange',()=>{/* CSS overlay remains active if browser fullscreen is unavailable. */});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('hgWritingArea')?.classList.contains('hg-writing-full'))toggleWritingFullscreen(false)});
+
+function initCanvas(){let c=document.getElementById('draw');if(!c)return;
+ hasDrawn=false;writeWon=false;writeLength=0;writeStrokeCount=0;paintGuide();
+ writeInk=document.createElement('canvas');writeInk.width=c.width;writeInk.height=c.height;
+ const ink=writeInk.getContext('2d');ink.strokeStyle='#5142a0';ink.lineWidth=12;ink.lineCap='round';ink.lineJoin='round';
+ let ctx=c.getContext('2d'),drawing=false,last=null;
+ ctx.strokeStyle='#5142a0';ctx.lineWidth=12;ctx.lineCap='round';ctx.lineJoin='round';
+ function pos(e){
+  const r=c.getBoundingClientRect();
+  const area=document.getElementById('hgWritingArea');
+  const t=area?getComputedStyle(area).transform:'none';
+  // On portrait phones the fullscreen board is rotated 90deg clockwise.
+  // Pointer coordinates must be inverse-rotated before painting to the 800x440 canvas.
+  if(t&&t!=='none'){
+    const m=t.match(/^matrix\(([^)]+)\)/);
+    if(m){const v=m[1].split(',').map(Number);
+      if(Math.abs(v[0])<0.01&&v[1]>0.9&&v[2]<-0.9){
+        return [(e.clientY-r.top)*c.width/r.height,(r.right-e.clientX)*c.height/r.width];
+      }
+    }
+  }
+  return [(e.clientX-r.left)*c.width/r.width,(e.clientY-r.top)*c.height/r.height];
+ }
+ c.onpointerdown=e=>{drawing=true;hasDrawn=true;writeStrokeCount++;last=pos(e);c.setPointerCapture(e.pointerId);for(const x of [ctx,ink]){x.beginPath();x.moveTo(...last)}};
+ c.onpointermove=e=>{if(!drawing)return;const p=pos(e);writeLength+=Math.hypot(p[0]-last[0],p[1]-last[1]);last=p;
+ for(const x of [ctx,ink]){x.lineTo(...p);x.stroke()}};
+ c.onpointerup=()=>{if(!drawing)return;drawing=false;last=null;evaluateWriting()};
+ c.onpointercancel=()=>{drawing=false;last=null};
+}
+function clearCanvas(){hasDrawn=false;writeWon=false;writeLength=0;writeStrokeCount=0;
+ if(writeInk)writeInk.getContext('2d').clearRect(0,0,writeInk.width,writeInk.height);
+ paintGuide();const label=document.getElementById('writeScore');if(label)label.textContent='✍️ Viết đủ nét và giống mẫu ≥70%'}
+function speakPage(){let l=lessons[idx];return `<div class="lessonhead"><h1>🎙️ Tập nói</h1><span class="pill">Bài ${idx+1}/30</span></div><div class="panel center"><p class="muted">Nghe mẫu, nhắc lại rồi nhấn micro để thử nhận dạng.</p><div class="bigchar">${l[1]}</div><div class="pinyin">${l[2]}</div><p class="meaning">${l[3]}</p><button class="btn secondary" onclick="speak(lessons[idx][1],.7)">🔊 Nghe mẫu</button> <button class="btn" onclick="recognize()" ${voiceSupported?'':'disabled'}>🎙️ Bắt đầu nói</button><div class="feedback" id="speechFeedback">${voiceSupported?'Hãy cho phép sử dụng micro khi trình duyệt yêu cầu.':'Trình duyệt này chưa hỗ trợ nhận dạng giọng nói. Hãy thử Chrome hoặc Edge.'}</div><button class="btn green" onclick="idx=(idx+1)%30;render()">Từ tiếp theo →</button><p class="note">Kết quả nhận dạng chỉ giúp kiểm tra từ nói ra, không phải điểm đánh giá phát âm hay thanh điệu chuẩn xác.</p></div>`}function recognize(){const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R)return;const r=new R();r.lang='zh-CN';r.interimResults=false;const f=document.getElementById('speechFeedback');f.textContent='🎙️ Đang nghe...';r.onresult=e=>{let t=e.results[0][0].transcript;let ok=t.replace(/[！。？！\s]/g,'').includes(lessons[idx][1]);f.textContent=`Bạn nói: ${t}. ${ok?'🎉 Nhận dạng trùng với từ mẫu! +10 XP':'Thử nói chậm và rõ hơn nhé.'}`;if(ok){earn(10);celebrate('Phát âm tốt! 🎉','Nhận dạng trùng từ mẫu. +10 XP')}};r.onerror=e=>f.textContent='Không thể nhận dạng: '+e.error+'. Kiểm tra quyền micro và kết nối mạng.';r.start()}function render(){document.body.classList.remove('hg-writing-lock');document.getElementById('xp').textContent=xp;app.innerHTML=page==='home'?home():page==='lessons'?lessonsPage():page==='detail'?detail():page==='listen'||page==='quiz'?quizItem(page):page==='result'?result():page==='arrange'?arrangePage():page==='write'?writePage():page==='alphabet'?alphabetPage():page==='speak'?speakPage():home();if(page==='write'){initCanvas();initStrokeDemo()}}render();
+</script><script type="module" id="hgPremiumModule">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import { getFirestore, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+// Dán apiKey chính xác từ Firebase Console > Project settings > Your apps > SDK setup and configuration.
+const firebaseConfig = {
+  apiKey: 'AIzaSyA0e_sTd0uZe-_XJzA1QM5UF26_yxqlj18',
+  authDomain: 'hanzigo-5793f.firebaseapp.com',
+  projectId: 'hanzigo-5793f',
+  storageBucket: 'hanzigo-5793f.firebasestorage.app',
+  messagingSenderId: '42312481944',
+  appId: '1:42312481944:web:802a3f3f2570a95857e4ed'
+};
+const TRIAL_MS = 5 * 24 * 60 * 60 * 1000;
+// Preview-only: does not grant Premium, change Firebase, or alter the actual trial.
+const hgPreviewExpired = new URLSearchParams(location.search).get('hg_test') === 'expired';
+function hgPreviewBanner(){
+  let b=document.getElementById('hgPreviewBanner');
+  if(!hgPreviewExpired){b?.remove();return;}
+  if(!b){b=document.createElement('div');b.id='hgPreviewBanner';b.setAttribute('role','status');
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483646;background:#fff3cc;color:#593900;text-align:center;padding:10px 14px;font:600 13px system-ui;box-shadow:0 2px 12px #0002';
+    b.innerHTML='🧪 CHẾ ĐỘ KIỂM THỬ — Giả lập hết hạn, không thay đổi Firebase. <a href="'+location.pathname+'" style="color:#5734c7;text-decoration:underline;margin-left:10px">Thoát kiểm thử</a>';
+    document.body.appendChild(b);
+  }
+}
+hgPreviewBanner();
+const gate = document.getElementById('hgGate');
+const title = document.getElementById('hgGateTitle');
+const msg = document.getElementById('hgGateMessage');
+const action = document.getElementById('hgGateAction');
+const status = document.getElementById('hgGateStatus');
+const error = document.getElementById('hgGateError');
+let unsubscribe = null, currentUser = null, currentDoc = null, auth;
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dateVi = (d) => d.toLocaleString('vi-VN', {timeZone:'Asia/Ho_Chi_Minh',hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'});
+function dateValue(v){ if(!v)return null; if(typeof v.toDate==='function')return v.toDate(); if(typeof v==='string'||typeof v==='number'){const d=new Date(v);return isNaN(d)?null:d;} return null; }
+function showGate(t,m,html){document.body.classList.remove('hg-auth-allowed');gate.hidden=false;title.textContent=t;msg.textContent=m;action.innerHTML=html;}
+function showApp(label){gate.hidden=true;document.body.classList.add('hg-auth-allowed');let strip=document.getElementById('hgUserStrip');if(!strip){strip=document.createElement('div');strip.id='hgUserStrip';document.querySelector('.top')?.append(strip);}if(strip)strip.innerHTML=`<span>${esc(currentUser?.displayName||currentUser?.email||'Học viên')}</span><span>· ${esc(label)}</span><button type="button" id="hgSignOut">Đăng xuất</button>`;document.getElementById('hgSignOut')?.addEventListener('click',()=>signOut(auth));}
+function updateAccess(){if(!currentUser)return;const created = new Date(currentUser.metadata.creationTime || currentUser.metadata.lastSignInTime || 0);const trialEnd = new Date(created.getTime()+TRIAL_MS);const paidEnd = dateValue(currentDoc?.premiumUntil);const now = Date.now();if(!hgPreviewExpired && paidEnd && paidEnd.getTime()>now){showApp('Premium đến '+dateVi(paidEnd));return;}if(!hgPreviewExpired && trialEnd.getTime()>now){const days=Math.ceil((trialEnd.getTime()-now)/86400000);showApp('Dùng thử còn '+days+' ngày');return;}
+const transferMemo='HG '+currentUser.uid.slice(0,12);
+showGate(hgPreviewExpired?'🧪 Xem thử: Hết 5 ngày dùng thử':'Hết 5 ngày dùng thử','Để tiếp tục học, chuyển khoản 50.000đ để mở khóa HanziGo trong 30 ngày.',`<div class="hg-payment"><div class="hg-payment-price">50.000đ / 30 ngày</div><div class="hg-payment-row"><span>Ngân hàng</span><strong>AGRIBANK</strong></div><div class="hg-payment-row"><span>Số tài khoản</span><strong>4603205297466</strong><button type="button" class="hg-copy" data-copy="4603205297466">Sao chép</button></div><div class="hg-payment-row"><span>Chủ tài khoản</span><strong>VU THANH TUYEN</strong></div><div class="hg-payment-row"><span>Nội dung CK</span><strong>${esc(transferMemo)}</strong><button type="button" class="hg-copy" data-copy="${esc(transferMemo)}">Sao chép</button></div><p class="hg-payment-note">Hãy chuyển đúng số tiền và ghi đúng nội dung chuyển khoản để chủ HanziGo nhận diện giao dịch.</p></div><p class="hg-auth-note">Tài khoản học: ${esc(currentUser.email||currentUser.uid)}. Sau khi tiền về, quản trị viên kiểm tra và mở khóa thủ công trên Firebase. Không tự động kích hoạt.</p><div class="hg-payment-actions"><button id="hgPaymentRefresh" type="button">Kiểm tra mở khóa</button><button id="hgLogout" type="button" class="hg-outline">Đăng xuất</button></div>`);
+action.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(b.dataset.copy);b.textContent='Đã sao chép ✓';}catch(e){b.textContent='Hãy chọn và sao chép thủ công';}}));
+document.getElementById('hgPaymentRefresh')?.addEventListener('click',()=>location.reload());
+document.getElementById('hgLogout')?.addEventListener('click',()=>signOut(auth));}
+function signInUI(){showGate('Chào mừng đến HanziGo','Đăng nhập Google để bắt đầu 5 ngày học thử miễn phí.','<button id="hgGoogleLogin">Đăng nhập bằng Google</button>');document.getElementById('hgGoogleLogin').addEventListener('click',async()=>{error.textContent='';status.textContent='Đang mở đăng nhập Google…';try{await signInWithPopup(auth,new GoogleAuthProvider());}catch(e){if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment'].includes(e.code)){await signInWithRedirect(auth,new GoogleAuthProvider());return;}status.textContent='';error.textContent='Không thể đăng nhập: '+(e.message||e.code);}});}
+if(firebaseConfig.apiKey.startsWith('DAN_')){showGate('Cần hoàn tất cấu hình Firebase','Hãy điền apiKey chính xác vào file index.html trước khi tải lên GitHub.','');error.textContent='Thiếu Firebase apiKey. Chưa thể bật đăng nhập.';}
+else{try{const app=initializeApp(firebaseConfig);auth=getAuth(app);const db=getFirestore(app);getRedirectResult(auth).catch(e=>{error.textContent='Lỗi chuyển hướng Google: '+e.message;});onAuthStateChanged(auth,u=>{if(unsubscribe){unsubscribe();unsubscribe=null;}currentUser=u;currentDoc=null;if(!u){document.getElementById('hgUserStrip')?.remove();signInUI();return;}status.textContent='Đang kiểm tra quyền truy cập…';unsubscribe=onSnapshot(doc(db,'users',u.uid),snap=>{currentDoc=snap.exists()?snap.data():null;error.textContent='';updateAccess();},e=>{console.warn('Firestore:',e);showGate('Chưa kiểm tra được quyền truy cập','Vui lòng thử tải lại trang hoặc liên hệ quản trị viên.','<button id="hgRetry" class="hg-outline">Tải lại trang</button>');document.getElementById('hgRetry')?.addEventListener('click',()=>location.reload());error.textContent='Firestore: '+e.message;});});setInterval(()=>{if(currentUser)updateAccess();},60000);}catch(e){showGate('Lỗi cấu hình Firebase','Kiểm tra thông tin firebaseConfig.','');error.textContent=e.message;}}
+</script></body></html>
