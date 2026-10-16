@@ -501,7 +501,7 @@ function speakPage(){let l=lessons[idx];return `<div class="lessonhead"><h1>🎙
 </script><script type="module" id="hgPremiumModule">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 // Dán apiKey chính xác từ Firebase Console > Project settings > Your apps > SDK setup and configuration.
 const firebaseConfig = {
   apiKey: 'AIzaSyA0e_sTd0uZe-_XJzA1QM5UF26_yxqlj18',
@@ -559,6 +559,12 @@ else{try{const app=initializeApp(firebaseConfig);auth=getAuth(app);const db=getF
   document.body.classList.remove('hg-auth-allowed');
   sessionId=getSessionId();
   const sessionRef=doc(db,'sessions',u.uid);
+  // Ghi hồ sơ tối thiểu để bảng thống kê có dữ liệu. Không cấp Premium từ phía học viên.
+  const profileRef=doc(db,'users',u.uid);
+  try {const existing=await getDoc(profileRef);if(!existing.exists())await setDoc(profileRef,{email:u.email||'',createdAt:serverTimestamp(),premiumUntil:null});}catch(profileError){console.warn('Không tạo được hồ sơ thống kê:',profileError);}
+  // Kiểm tra quyền admin; quyền thực tế vẫn do Firestore Rules quyết định.
+  getDoc(doc(db,'admins',u.uid)).then(s=>{if(s.exists() && s.data().enabled===true){const top=document.querySelector('.top');if(top&&!document.getElementById('hgAdminLink')){const a=document.createElement('a');a.id='hgAdminLink';a.href='./admin.html';a.textContent='📊 Quản trị';a.style.cssText='display:inline-block;margin:6px;padding:7px 12px;border-radius:10px;background:#e6f2ff;color:#1454a6;font-weight:700;text-decoration:none';top.append(a);}}}).catch(()=>{});
+
   try {
     await runTransaction(db,async tx=>{
       await tx.get(sessionRef);
