@@ -565,8 +565,8 @@ else{try{const app=initializeApp(firebaseConfig);auth=getAuth(app);const db=getF
   // Ghi hồ sơ tối thiểu để bảng thống kê có dữ liệu. Không cấp Premium từ phía học viên.
   const profileRef=doc(db,'users',u.uid);
   try {const existing=await getDoc(profileRef);if(!existing.exists())await setDoc(profileRef,{email:u.email||'',createdAt:serverTimestamp(),premiumUntil:null});}catch(profileError){console.warn('Không tạo được hồ sơ thống kê:',profileError);}
-  // Kiểm tra quyền admin; quyền thực tế vẫn do Firestore Rules quyết định.
-  getDoc(doc(db,'admins',u.uid)).then(s=>{if(s.exists() && s.data().enabled===true){const top=document.querySelector('.top');if(top&&!document.getElementById('hgAdminLink')){const a=document.createElement('a');a.id='hgAdminLink';a.href='./admin.html';a.textContent='📊 Quản trị';a.style.cssText='display:inline-block;margin:6px;padding:7px 12px;border-radius:10px;background:#e6f2ff;color:#1454a6;font-weight:700;text-decoration:none';top.append(a);}}}).catch(()=>{});
+  // Liên kết quản trị ẩn trên trang học viên; admin.html vẫn truy cập trực tiếp.
+
 
   try {
     await runTransaction(db,async tx=>{
