@@ -501,7 +501,7 @@ function speakPage(){let l=lessons[idx];return `<div class="lessonhead"><h1>🎙
 </script><script type="module" id="hgPremiumModule">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-import { getFirestore, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 // Dán apiKey chính xác từ Firebase Console > Project settings > Your apps > SDK setup and configuration.
 const firebaseConfig = {
   apiKey: 'AIzaSyA0e_sTd0uZe-_XJzA1QM5UF26_yxqlj18',
@@ -518,13 +518,29 @@ const msg = document.getElementById('hgGateMessage');
 const action = document.getElementById('hgGateAction');
 const status = document.getElementById('hgGateStatus');
 const error = document.getElementById('hgGateError');
-let unsubscribe = null, currentUser = null, currentDoc = null, auth;
+let unsubscribe = null, unsubscribeSession = null, currentUser = null, currentDoc = null, auth;
+let sessionReady = false, sessionRevoked = false, sessionId = null, authGeneration = 0;
+const SESSION_KEY = 'hanzigo_session_id';
+function getSessionId(){
+  let id = sessionStorage.getItem(SESSION_KEY);
+  if(!id){id = crypto.randomUUID();sessionStorage.setItem(SESSION_KEY,id);}
+  return id;
+}
+function kickedOut(){
+  sessionReady = false;sessionRevoked = true;
+  document.getElementById('hgUserStrip')?.remove();
+  showGate('Tài khoản đang được dùng trên thiết bị khác',
+    'Một thiết bị khác vừa đăng nhập bằng tài khoản Google này. Phiên học ở thiết bị hiện tại đã bị khóa.',
+    '<button type="button" id="hgTakeBack">Đăng nhập lại trên thiết bị này</button><p class="hg-auth-note">Nếu tiếp tục, thiết bị kia sẽ bị khóa.</p>');
+  document.getElementById('hgTakeBack')?.addEventListener('click',()=>location.reload());
+}
+
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateVi = (d) => d.toLocaleString('vi-VN', {timeZone:'Asia/Ho_Chi_Minh',hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'});
 function dateValue(v){ if(!v)return null; if(typeof v.toDate==='function')return v.toDate(); if(typeof v==='string'||typeof v==='number'){const d=new Date(v);return isNaN(d)?null:d;} return null; }
 function showGate(t,m,html){document.body.classList.remove('hg-auth-allowed');gate.hidden=false;title.textContent=t;msg.textContent=m;action.innerHTML=html;}
 function showApp(label){gate.hidden=true;document.body.classList.add('hg-auth-allowed');let strip=document.getElementById('hgUserStrip');if(!strip){strip=document.createElement('div');strip.id='hgUserStrip';document.querySelector('.top')?.append(strip);}if(strip)strip.innerHTML=`<span>${esc(currentUser?.displayName||currentUser?.email||'Học viên')}</span><span>· ${esc(label)}</span><button type="button" id="hgSignOut">Đăng xuất</button>`;document.getElementById('hgSignOut')?.addEventListener('click',()=>signOut(auth));}
-function updateAccess(){if(!currentUser)return;const created = new Date(currentUser.metadata.creationTime || currentUser.metadata.lastSignInTime || 0);const trialEnd = new Date(created.getTime()+TRIAL_MS);const paidEnd = dateValue(currentDoc?.premiumUntil);const now = Date.now();if(paidEnd && paidEnd.getTime()>now){showApp('Premium đến '+dateVi(paidEnd));return;}if(trialEnd.getTime()>now){const seconds=Math.max(0,Math.ceil((trialEnd.getTime()-now)/1000));const mm=Math.floor(seconds/60),ss=String(seconds%60).padStart(2,'0');showApp('Dùng thử còn '+mm+':'+ss);return;}
+function updateAccess(){if(!currentUser || !sessionReady || sessionRevoked)return;const created = new Date(currentUser.metadata.creationTime || currentUser.metadata.lastSignInTime || 0);const trialEnd = new Date(created.getTime()+TRIAL_MS);const paidEnd = dateValue(currentDoc?.premiumUntil);const now = Date.now();if(paidEnd && paidEnd.getTime()>now){showApp('Premium đến '+dateVi(paidEnd));return;}if(trialEnd.getTime()>now){const seconds=Math.max(0,Math.ceil((trialEnd.getTime()-now)/1000));const mm=Math.floor(seconds/60),ss=String(seconds%60).padStart(2,'0');showApp('Dùng thử còn '+mm+':'+ss);return;}
 const transferMemo='HG '+currentUser.uid.slice(0,12);
 showGate('Hết 5 phút dùng thử','Để tiếp tục học, chuyển khoản 50.000đ để mở khóa HanziGo trong 30 ngày.',`<div class="hg-payment"><div class="hg-payment-price">50.000đ / 30 ngày</div><div class="hg-payment-row"><span>Ngân hàng</span><strong>AGRIBANK</strong></div><div class="hg-payment-row"><span>Số tài khoản</span><strong>4603205297466</strong><button type="button" class="hg-copy" data-copy="4603205297466">Sao chép</button></div><div class="hg-payment-row"><span>Chủ tài khoản</span><strong>VU THANH TUYEN</strong></div><div class="hg-payment-row"><span>Nội dung CK</span><strong>${esc(transferMemo)}</strong><button type="button" class="hg-copy" data-copy="${esc(transferMemo)}">Sao chép</button></div><p class="hg-payment-note">Hãy chuyển đúng số tiền và ghi đúng nội dung chuyển khoản để chủ HanziGo nhận diện giao dịch.</p></div><p class="hg-auth-note">Tài khoản học: ${esc(currentUser.email||currentUser.uid)}. Sau khi tiền về, quản trị viên kiểm tra và mở khóa thủ công trên Firebase. Không tự động kích hoạt.</p><div class="hg-payment-actions"><button id="hgPaymentRefresh" type="button">Kiểm tra mở khóa</button><button id="hgLogout" type="button" class="hg-outline">Đăng xuất</button></div>`);
 action.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(b.dataset.copy);b.textContent='Đã sao chép ✓';}catch(e){b.textContent='Hãy chọn và sao chép thủ công';}}));
@@ -532,5 +548,50 @@ document.getElementById('hgPaymentRefresh')?.addEventListener('click',()=>locati
 document.getElementById('hgLogout')?.addEventListener('click',()=>signOut(auth));}
 function signInUI(){showGate('Chào mừng đến HanziGo','Đăng nhập Google để bắt đầu 5 phút học thử (bản kiểm thử). Thời gian tính từ lúc tạo tài khoản Firebase.','<button id="hgGoogleLogin">Đăng nhập bằng Google</button>');document.getElementById('hgGoogleLogin').addEventListener('click',async()=>{error.textContent='';status.textContent='Đang mở đăng nhập Google…';try{await signInWithPopup(auth,new GoogleAuthProvider());}catch(e){if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment'].includes(e.code)){await signInWithRedirect(auth,new GoogleAuthProvider());return;}status.textContent='';error.textContent='Không thể đăng nhập: '+(e.message||e.code);}});}
 if(firebaseConfig.apiKey.startsWith('DAN_')){showGate('Cần hoàn tất cấu hình Firebase','Hãy điền apiKey chính xác vào file index.html trước khi tải lên GitHub.','');error.textContent='Thiếu Firebase apiKey. Chưa thể bật đăng nhập.';}
-else{try{const app=initializeApp(firebaseConfig);auth=getAuth(app);const db=getFirestore(app);getRedirectResult(auth).catch(e=>{error.textContent='Lỗi chuyển hướng Google: '+e.message;});onAuthStateChanged(auth,u=>{if(unsubscribe){unsubscribe();unsubscribe=null;}currentUser=u;currentDoc=null;if(!u){document.getElementById('hgUserStrip')?.remove();signInUI();return;}status.textContent='Đang kiểm tra quyền truy cập…';unsubscribe=onSnapshot(doc(db,'users',u.uid),snap=>{currentDoc=snap.exists()?snap.data():null;error.textContent='';updateAccess();},e=>{console.warn('Firestore:',e);showGate('Chưa kiểm tra được quyền truy cập','Vui lòng thử tải lại trang hoặc liên hệ quản trị viên.','<button id="hgRetry" class="hg-outline">Tải lại trang</button>');document.getElementById('hgRetry')?.addEventListener('click',()=>location.reload());error.textContent='Firestore: '+e.message;});});setInterval(()=>{if(currentUser)updateAccess();},1000);}catch(e){showGate('Lỗi cấu hình Firebase','Kiểm tra thông tin firebaseConfig.','');error.textContent=e.message;}}
+else{try{const app=initializeApp(firebaseConfig);auth=getAuth(app);const db=getFirestore(app);getRedirectResult(auth).catch(e=>{error.textContent='Lỗi chuyển hướng Google: '+e.message;});onAuthStateChanged(auth,async u=>{
+  const generation = ++authGeneration;
+  if(unsubscribe){unsubscribe();unsubscribe=null;}
+  if(unsubscribeSession){unsubscribeSession();unsubscribeSession=null;}
+  currentUser=u;currentDoc=null;sessionReady=false;sessionRevoked=false;
+  if(!u){document.getElementById('hgUserStrip')?.remove();signInUI();return;}
+  showGate('Đang xác nhận thiết bị','HanziGo đang kích hoạt phiên học trên thiết bị này…','');
+  status.textContent='Đang đăng ký phiên sử dụng…';
+  document.body.classList.remove('hg-auth-allowed');
+  sessionId=getSessionId();
+  const sessionRef=doc(db,'sessions',u.uid);
+  try {
+    await runTransaction(db,async tx=>{
+      await tx.get(sessionRef);
+      tx.set(sessionRef,{sessionId,updatedAt:serverTimestamp()});
+    });
+    if(generation!==authGeneration)return;
+    // Chỉ tin bản ghi được xác nhận từ máy chủ, không dựa vào cache.
+    unsubscribeSession=onSnapshot(sessionRef,{includeMetadataChanges:true},snap=>{
+      if(generation!==authGeneration || !snap.exists() || snap.metadata.fromCache || snap.metadata.hasPendingWrites)return;
+      if(snap.data().sessionId!==sessionId){kickedOut();return;}
+      if(sessionRevoked)return;
+      sessionReady=true;
+      updateAccess();
+    },e=>{
+      sessionReady=false;
+      showGate('Không xác minh được phiên đăng nhập','Vui lòng kiểm tra mạng và tải lại trang.','<button id="hgRetry" class="hg-outline">Tải lại</button>');
+      document.getElementById('hgRetry')?.addEventListener('click',()=>location.reload());
+      error.textContent='Phiên: '+e.message;
+    });
+    unsubscribe=onSnapshot(doc(db,'users',u.uid),snap=>{
+      if(generation!==authGeneration)return;
+      currentDoc=snap.exists()?snap.data():null;error.textContent='';updateAccess();
+    },e=>{
+      console.warn('Firestore:',e);
+      showGate('Chưa kiểm tra được quyền truy cập','Vui lòng thử tải lại trang hoặc liên hệ quản trị viên.','<button id="hgRetry" class="hg-outline">Tải lại trang</button>');
+      document.getElementById('hgRetry')?.addEventListener('click',()=>location.reload());
+      error.textContent='Firestore: '+e.message;
+    });
+  } catch(e) {
+    if(generation!==authGeneration)return;
+    showGate('Không kích hoạt được phiên học','Kiểm tra Firestore Rules cho collection sessions rồi tải lại.','<button id="hgRetry" class="hg-outline">Tải lại</button>');
+    document.getElementById('hgRetry')?.addEventListener('click',()=>location.reload());
+    error.textContent=e.message;
+  }
+});setInterval(()=>{if(currentUser)updateAccess();},1000);}catch(e){showGate('Lỗi cấu hình Firebase','Kiểm tra thông tin firebaseConfig.','');error.textContent=e.message;}}
 </script></body></html>
