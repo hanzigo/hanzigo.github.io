@@ -9,192 +9,429 @@
 <section class="panel" id="restorePanel"><h2>♻️ Phục hồi hồ sơ từ bản sao lưu</h2><p class="muted">Chọn file JSON từ nút Sao lưu ngày/tuần hoặc bản JSON đã tải từ lịch sử. Xem trước và chọn từng hồ sơ trước khi ghi dữ liệu trở lại Firestore. Không xóa hồ sơ hiện tại; không tạo lại tài khoản Firebase Authentication.</p><div class="tools"><input id="restoreFile" type="file" accept=".json,application/json"><button id="restorePreview" class="btn secondary" type="button">🔎 Kiểm tra bản sao lưu</button></div><div id="restoreSummary" class="muted" aria-live="polite"></div><div class="tools"><label><input id="restorePremium" type="checkbox"> Cho phép phục hồi hạn Premium</label><input id="restoreDisabled" type="checkbox" class="hide" disabled></div><div class="scroll" id="restoreTable"></div><div class="tools"><button id="restoreApply" type="button" class="btn danger" disabled>♻️ Xác nhận phục hồi hồ sơ đã chọn</button></div><p id="restoreStatus" class="muted" aria-live="polite"></p><p class="muted"><b>Giới hạn:</b> chỉ cập nhật các hồ sơ đã tồn tại trong Firestore. Nếu tài khoản đã bị xóa khỏi Firebase Authentication, thao tác này không tạo lại được đăng nhập. Không phục hồi quyền quản trị, không ghi đè các trường ngoài danh sách an toàn.</p></section>
 <section class="panel"><h2>Hướng dẫn</h2><p><b>Sao lưu tự động:</b> bản lưu được tạo khi Admin đang mở và đã tải dữ liệu; không chạy khi máy tắt. Muốn sao lưu 24/7 cần dịch vụ máy chủ riêng.</p><p>Chỉ nhấn <b>Mở khóa 30 ngày</b> sau khi đã kiểm tra tiền thực nhận trong tài khoản ngân hàng. Nếu học viên còn Premium, 30 ngày được cộng từ ngày hết hạn hiện tại; nếu đã hết hạn, tính từ thời điểm kích hoạt.</p><p class="muted">Trang quản trị không tự kiểm tra chuyển khoản hoặc tự kích hoạt Premium.</p></section></main></div>
 <script type="module">
-import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-import {getFirestore,doc,getDoc,collection,getDocs,runTransaction,Timestamp,updateDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+const _hgz=s=>new TextDecoder().decode(Uint8Array.from(atob(s),c=>c.charCodeAt(0)));
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import { getFirestore, doc, getDoc, collection, getDocs, runTransaction, Timestamp, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 const firebaseConfig = {
-  apiKey: 'AIzaSyA0e_sTd0uZe-_XJzA1QM5UF26_yxqlj18',
-  authDomain: 'hanzigo-5793f.firebaseapp.com',
-  projectId: 'hanzigo-5793f',
-  storageBucket: 'hanzigo-5793f.firebasestorage.app',
-  messagingSenderId: '42312481944',
-  appId: '1:42312481944:web:802a3f3f2570a95857e4ed'
+    apiKey: _hgz("QUl6YVN5QTBlX3NUZDB1WmUtX1hKekExUU01VUYyNl95eHFsajE4"),
+    authDomain: _hgz("aGFuemlnby01NzkzZi5maXJlYmFzZWFwcC5jb20="),
+    projectId: _hgz("aGFuemlnby01NzkzZg=="),
+    storageBucket: _hgz("aGFuemlnby01NzkzZi5maXJlYmFzZXN0b3JhZ2UuYXBw"),
+    messagingSenderId: _hgz("NDIzMTI0ODE5NDQ="),
+    appId: _hgz("MTo0MjMxMjQ4MTk0NDp3ZWI6ODAyYTNmM2YyNTcwYTk1ODU3ZTRlZA==")
 };
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-const el=id=>document.getElementById(id),TRIAL=3*86400000;let users=[],adminUid=null;
-const date=v=>v?.toDate?.()||(v?new Date(v):null),fmt=v=>v&&!isNaN(v)?new Intl.DateTimeFormat('vi-VN',{dateStyle:'short',timeStyle:'short',timeZone:'Asia/Ho_Chi_Minh'}).format(v):'—';
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
-function kind(u){if(u.disabled===true)return 'disabled';let paid=date(u.premiumUntil),created=date(u.createdAt),now=Date.now();if(paid&&paid.getTime()>now)return 'premium';if(created&&created.getTime()+TRIAL>now)return 'trial';return 'expired';}
-function label(k){return k==='premium'?'Premium':k==='trial'?'Dùng thử':k==='disabled'?'Vô hiệu':'Hết hạn';}
-function summary(){let counts={trial:0,premium:0,expired:0},soon=0;users.forEach(u=>{const k=kind(u);if(counts[k]!==undefined)counts[k]++;const d=date(u.premiumUntil);if(k==='premium'&&d.getTime()-Date.now()<=7*86400000)soon++;});el('total').textContent=users.length;for(const k of ['trial','premium','expired'])el(k).textContent=counts[k];el('soon').textContent=soon;el('bar').replaceChildren();for(const [k,color] of [['premium','#377bdf'],['trial','#25a778'],['expired','#ef9b4c']]){let s=document.createElement('span');s.style.width=(users.length?counts[k]/users.length*100:0)+'%';s.style.background=color;el('bar').append(s);}el('chartLegend').textContent=`Premium: ${counts.premium} · Dùng thử: ${counts.trial} · Hết hạn: ${counts.expired}`;}
-function render(){summary();const q=el('search').value.trim().toLowerCase(),f=el('filter').value;let list=users.filter(u=>(f==='all'||kind(u)===f)&&((u.email||'').toLowerCase().includes(q)||u.id.toLowerCase().includes(q)));const body=el('rows');body.replaceChildren();for(const u of list){const tr=document.createElement('tr'),k=kind(u);const fields=[u.email||'(chưa có email)',u.id.slice(0,6).toUpperCase(),label(k),fmt(date(u.createdAt)),fmt(date(u.premiumUntil))];for(let i=0;i<fields.length;i++){const td=document.createElement('td');if(i===2){const span=document.createElement('span');span.className='tag '+k;span.textContent=fields[i];td.append(span);}else {td.textContent=fields[i];if(i===1){td.className='uid';td.title=u.id;}}tr.append(td);}const td=document.createElement('td'),btn=document.createElement('button');btn.className='btn warn';btn.textContent='Mở khóa 30 ngày';btn.addEventListener('click',()=>extend(u));const actions=document.createElement('div');actions.className='actions';actions.append(btn);
- td.append(actions);tr.append(td);body.append(tr);}el('count').textContent=`Đang hiển thị ${list.length} / ${users.length} hồ sơ`;}
-async function load(){el('notice').textContent='Đang tải dữ liệu…';try{const snap=await getDocs(collection(db,'users'));users=snap.docs.map(d=>({id:d.id,...d.data()}));render();hgBackupOnLogin();await hgAutoBackupCheck();el('notice').textContent='Cập nhật lúc '+new Date().toLocaleTimeString('vi-VN');return true;}catch(e){el('notice').textContent='Không đọc được danh sách: '+e.message;return false;}}
-async function extend(u){if(!adminUid)return;const email=u.email||u.id;if(!confirm(`Đã xác nhận nhận tiền?
-Mở khóa thêm 30 ngày cho ${email}?`))return;try{const ref=doc(db,'users',u.id);await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error('Hồ sơ không tồn tại');const old=date(snap.data().premiumUntil),start=old&&old.getTime()>Date.now()?old.getTime():Date.now();tx.update(ref,{premiumUntil:Timestamp.fromMillis(start+30*86400000)});});alert('Đã cập nhật Premium 30 ngày.');await load();}catch(e){alert('Không gia hạn được: '+e.message);}}
-function snapshotBackup(period){
- if(!adminUid)return;
- const now=new Date(),stamp=now.toISOString().slice(0,10),weekStart=new Date(now);weekStart.setDate(now.getDate()-((now.getDay()+6)%7));
- const suffix=period==='daily'?stamp:weekStart.toISOString().slice(0,10);
- const data={app:'HanziGo',kind:period,exportedAt:now.toISOString(),count:users.length,users:users.map(u=>({uid:u.id,...Object.fromEntries(Object.entries(u).filter(([k])=>k!=='id').map(([k,v])=>[k,v?.toDate?.()?.toISOString?.()??v]))}))};
- const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.href=url;a.download=`hanzigo-backup-${period}-${suffix}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),3000);
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const el = id => document.getElementById(id), TRIAL = 3 * 86400000;
+let users = [], adminUid = null;
+const date = v => v?.toDate?.() || (v ? new Date(v) : null), fmt = v => v && !isNaN(v) ? new Intl.DateTimeFormat(_hgz("dmktVk4="), { dateStyle: _hgz("c2hvcnQ="), timeStyle: _hgz("c2hvcnQ="), timeZone: _hgz("QXNpYS9Ib19DaGlfTWluaA==") }).format(v) : '—';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': _hgz("JmFtcDs="), '<': _hgz("Jmx0Ow=="), '>': _hgz("Jmd0Ow=="), '"': _hgz("JnF1b3Q7"), '"': _hgz("JnF1b3Q7") }[c]));
+function kind(u) { if (u.disabled === true)
+    return _hgz("ZGlzYWJsZWQ="); let paid = date(u.premiumUntil), created = date(u.createdAt), now = Date.now(); if (paid && paid.getTime() > now)
+    return _hgz("cHJlbWl1bQ=="); if (created && created.getTime() + TRIAL > now)
+    return _hgz("dHJpYWw="); return _hgz("ZXhwaXJlZA=="); }
+function label(k) { return k === _hgz("cHJlbWl1bQ==") ? _hgz("UHJlbWl1bQ==") : k === _hgz("dHJpYWw=") ? _hgz("RMO5bmcgdGjhu60=") : k === _hgz("ZGlzYWJsZWQ=") ? _hgz("VsO0IGhp4buHdQ==") : _hgz("SOG6v3QgaOG6oW4="); }
+function summary() { let counts = { trial: 0, premium: 0, expired: 0 }, soon = 0; users.forEach(u => { const k = kind(u); if (counts[k] !== undefined)
+    counts[k]++; const d = date(u.premiumUntil); if (k === _hgz("cHJlbWl1bQ==") && d.getTime() - Date.now() <= 7 * 86400000)
+    soon++; }); el(_hgz("dG90YWw=")).textContent = users.length; for (const k of [_hgz("dHJpYWw="), _hgz("cHJlbWl1bQ=="), _hgz("ZXhwaXJlZA==")])
+    el(k).textContent = counts[k]; el(_hgz("c29vbg==")).textContent = soon; el(_hgz("YmFy")).replaceChildren(); for (const [k, color] of [[_hgz("cHJlbWl1bQ=="), _hgz("IzM3N2JkZg==")], [_hgz("dHJpYWw="), _hgz("IzI1YTc3OA==")], [_hgz("ZXhwaXJlZA=="), _hgz("I2VmOWI0Yw==")]]) {
+    let s = document.createElement(_hgz("c3Bhbg=="));
+    s.style.width = (users.length ? counts[k] / users.length * 100 : 0) + '%';
+    s.style.background = color;
+    el(_hgz("YmFy")).append(s);
+} el(_hgz("Y2hhcnRMZWdlbmQ=")).textContent = `Premium: ${counts.premium} · Dùng thử: ${counts.trial} · Hết hạn: ${counts.expired}`; }
+function render() {
+    summary();
+    const q = el(_hgz("c2VhcmNo")).value.trim().toLowerCase(), f = el(_hgz("ZmlsdGVy")).value;
+    let list = users.filter(u => (f === _hgz("YWxs") || kind(u) === f) && ((u.email || '').toLowerCase().includes(q) || u.id.toLowerCase().includes(q)));
+    const body = el(_hgz("cm93cw=="));
+    body.replaceChildren();
+    for (const u of list) {
+        const tr = document.createElement('tr'), k = kind(u);
+        const fields = [u.email || _hgz("KGNoxrBhIGPDsyBlbWFpbCk="), u.id.slice(0, 6).toUpperCase(), label(k), fmt(date(u.createdAt)), fmt(date(u.premiumUntil))];
+        for (let i = 0; i < fields.length; i++) {
+            const td = document.createElement('td');
+            if (i === 2) {
+                const span = document.createElement(_hgz("c3Bhbg=="));
+                span.className = _hgz("dGFnIA==") + k;
+                span.textContent = fields[i];
+                td.append(span);
+            }
+            else {
+                td.textContent = fields[i];
+                if (i === 1) {
+                    td.className = _hgz("dWlk");
+                    td.title = u.id;
+                }
+            }
+            tr.append(td);
+        }
+        const td = document.createElement('td'), btn = document.createElement(_hgz("YnV0dG9u"));
+        btn.className = _hgz("YnRuIHdhcm4=");
+        btn.textContent = _hgz("TeG7nyBraMOzYSAzMCBuZ8OgeQ==");
+        btn.addEventListener(_hgz("Y2xpY2s="), () => extend(u));
+        const actions = document.createElement(_hgz("ZGl2"));
+        actions.className = _hgz("YWN0aW9ucw==");
+        actions.append(btn);
+        td.append(actions);
+        tr.append(td);
+        body.append(tr);
+    }
+    el(_hgz("Y291bnQ=")).textContent = `Đang hiển thị ${list.length} / ${users.length} hồ sơ`;
 }
-
-// Sao lưu báo cáo ngay trong trang admin; không yêu cầu thao tác trên Firebase Console.
-function backupRows(){
- const q=el('search').value.trim().toLowerCase(),f=el('filter').value;
- const subset=el('backupScope').value==='filtered'
-  ?users.filter(u=>(f==='all'||kind(u)===f)&&((u.email||'').toLowerCase().includes(q)||u.id.toLowerCase().includes(q)))
-  :users;
- return subset.map(u=>({
-  uid:u.id,short:u.id.slice(0,6).toUpperCase(),email:u.email||'',
-  state:label(kind(u)),created:fmt(date(u.createdAt)),
-  premium:fmt(date(u.premiumUntil)),disabled:u.disabled===true?'Có':'Không'
- }));
+async function load() { el(_hgz("bm90aWNl")).textContent = _hgz("xJBhbmcgdOG6o2kgZOG7ryBsaeG7h3XigKY="); try {
+    const snap = await getDocs(collection(db, _hgz("dXNlcnM=")));
+    users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+    hgBackupOnLogin();
+    await hgAutoBackupCheck();
+    el(_hgz("bm90aWNl")).textContent = _hgz("Q+G6rXAgbmjhuq10IGzDumMg") + new Date().toLocaleTimeString(_hgz("dmktVk4="));
+    return true;
 }
-function backupName(ext){
- const t=new Date(),local=new Date(t.getTime()+7*3600000).toISOString().slice(0,16).replace('T','_').replace(':','-');
- return `HanziGo_Danh_Sach_Tai_Khoan_${local}.${ext}`;
+catch (e) {
+    el(_hgz("bm90aWNl")).textContent = _hgz("S2jDtG5nIMSR4buNYyDEkcaw4bujYyBkYW5oIHPDoWNoOiA=") + e.message;
+    return false;
+} }
+async function extend(u) {
+    if (!adminUid)
+        return;
+    const email = u.email || u.id;
+    if (!confirm(`Đã xác nhận nhận tiền?
+Mở khóa thêm 30 ngày cho ${email}?`))
+        return;
+    try {
+        const ref = doc(db, _hgz("dXNlcnM="), u.id);
+        await runTransaction(db, async (tx) => { const snap = await tx.get(ref); if (!snap.exists())
+            throw Error(_hgz("SOG7kyBzxqEga2jDtG5nIHThu5NuIHThuqFp")); const old = date(snap.data().premiumUntil), start = old && old.getTime() > Date.now() ? old.getTime() : Date.now(); tx.update(ref, { premiumUntil: Timestamp.fromMillis(start + 30 * 86400000) }); });
+        alert(_hgz("xJDDoyBj4bqtcCBuaOG6rXQgUHJlbWl1bSAzMCBuZ8OgeS4="));
+        await load();
+    }
+    catch (e) {
+        alert(_hgz("S2jDtG5nIGdpYSBo4bqhbiDEkcaw4bujYzog") + e.message);
+    }
 }
-function backupDownload(name,mime,content){
- const a=document.createElement('a'),url=URL.createObjectURL(new Blob([content],{type:mime}));
- a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(url),10000);
+function snapshotBackup(period) {
+    if (!adminUid)
+        return;
+    const now = new Date(), stamp = now.toISOString().slice(0, 10), weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    const suffix = period === _hgz("ZGFpbHk=") ? stamp : weekStart.toISOString().slice(0, 10);
+    const data = { app: _hgz("SGFuemlHbw=="), kind: period, exportedAt: now.toISOString(), count: users.length, users: users.map(u => ({ uid: u.id, ...Object.fromEntries(Object.entries(u).filter(([k]) => k !== 'id').map(([k, v]) => [k, v?.toDate?.()?.toISOString?.() ?? v])) })) };
+    const a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: _hgz("YXBwbGljYXRpb24vanNvbg==") }));
+    a.href = url;
+    a.download = `hanzigo-backup-${period}-${suffix}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
 }
-function backupColumns(){return ['UID đầy đủ','UID 6 ký tự','Email','Trạng thái','Ngày tạo','Premium đến','Bị vô hiệu'];}
-function backupValues(r){return [r.uid,r.short,r.email,r.state,r.created,r.premium,r.disabled];}
-el('exportTxt').onclick=()=>{
- const rows=backupRows(),stamp=new Date().toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'});
- const content=['HANZIGO - SAO LƯU DANH SÁCH TÀI KHOẢN','Thời điểm xuất: '+stamp,'Tổng số hồ sơ: '+rows.length,'',
- ...rows.map((r,i)=>[`${i+1}. ${r.email||'(chưa có email)'}`,`   UID: ${r.uid}`,`   Mã UID: ${r.short}`,`   Trạng thái: ${r.state}`,`   Ngày tạo: ${r.created}`,`   Premium đến: ${r.premium}`,`   Vô hiệu: ${r.disabled}`,''].join('\r\n'))].join('\r\n');
- backupDownload(backupName('txt'),'text/plain;charset=utf-8','\uFEFF'+content);
- el('backupStatus').textContent='Đã yêu cầu tải TXT: '+rows.length+' hồ sơ.';
+function backupRows() {
+    const q = el(_hgz("c2VhcmNo")).value.trim().toLowerCase(), f = el(_hgz("ZmlsdGVy")).value;
+    const subset = el(_hgz("YmFja3VwU2NvcGU=")).value === _hgz("ZmlsdGVyZWQ=")
+        ? users.filter(u => (f === _hgz("YWxs") || kind(u) === f) && ((u.email || '').toLowerCase().includes(q) || u.id.toLowerCase().includes(q)))
+        : users;
+    return subset.map(u => ({
+        uid: u.id, short: u.id.slice(0, 6).toUpperCase(), email: u.email || '',
+        state: label(kind(u)), created: fmt(date(u.createdAt)),
+        premium: fmt(date(u.premiumUntil)), disabled: u.disabled === true ? 'Có' : _hgz("S2jDtG5n")
+    }));
+}
+function backupName(ext) {
+    const t = new Date(), local = new Date(t.getTime() + 7 * 3600000).toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
+    return `HanziGo_Danh_Sach_Tai_Khoan_${local}.${ext}`;
+}
+function backupDownload(name, mime, content) {
+    const a = document.createElement('a'), url = URL.createObjectURL(new Blob([content], { type: mime }));
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+function backupColumns() { return [_hgz("VUlEIMSR4bqneSDEkeG7pw=="), _hgz("VUlEIDYga8O9IHThu7E="), _hgz("RW1haWw="), _hgz("VHLhuqFuZyB0aMOhaQ=="), _hgz("TmfDoHkgdOG6oW8="), _hgz("UHJlbWl1bSDEkeG6v24="), _hgz("QuG7iyB2w7QgaGnhu4d1")]; }
+function backupValues(r) { return [r.uid, r.short, r.email, r.state, r.created, r.premium, r.disabled]; }
+el(_hgz("ZXhwb3J0VHh0")).onclick = () => {
+    const rows = backupRows(), stamp = new Date().toLocaleString(_hgz("dmktVk4="), { timeZone: _hgz("QXNpYS9Ib19DaGlfTWluaA==") });
+    const content = [_hgz("SEFOWklHTyAtIFNBTyBMxq9VIERBTkggU8OBQ0ggVMOASSBLSE/huqJO"), _hgz("VGjhu51pIMSRaeG7g20geHXhuqV0OiA=") + stamp, _hgz("VOG7lW5nIHPhu5EgaOG7kyBzxqE6IA==") + rows.length, '',
+        ...rows.map((r, i) => [`${i + 1}. ${r.email || _hgz("KGNoxrBhIGPDsyBlbWFpbCk=")}`, `   UID: ${r.uid}`, `   Mã UID: ${r.short}`, `   Trạng thái: ${r.state}`, `   Ngày tạo: ${r.created}`, `   Premium đến: ${r.premium}`, `   Vô hiệu: ${r.disabled}`, ''].join('\r\n'))].join('\r\n');
+    backupDownload(backupName(_hgz("dHh0")), _hgz("dGV4dC9wbGFpbjtjaGFyc2V0PXV0Zi04"), '\uFEFF' + content);
+    el(_hgz("YmFja3VwU3RhdHVz")).textContent = _hgz("xJDDoyB5w6p1IGPhuqd1IHThuqNpIFRYVDog") + rows.length + _hgz("IGjhu5Mgc8ahLg==");
 };
-el('exportExcel').onclick=()=>{
- const rows=backupRows(),data=[backupColumns(),...rows.map(backupValues)];
- const csv='\uFEFF'+data.map(row=>row.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
- backupDownload(backupName('csv'),'text/csv;charset=utf-8',csv);
- el('backupStatus').textContent='Đã yêu cầu tải CSV: '+rows.length+' hồ sơ. Mở bằng Microsoft Excel.';
+el(_hgz("ZXhwb3J0RXhjZWw=")).onclick = () => {
+    const rows = backupRows(), data = [backupColumns(), ...rows.map(backupValues)];
+    const csv = '\uFEFF' + data.map(row => row.map(x => '"' + String(x ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
+    backupDownload(backupName(_hgz("Y3N2")), _hgz("dGV4dC9jc3Y7Y2hhcnNldD11dGYtOA=="), csv);
+    el(_hgz("YmFja3VwU3RhdHVz")).textContent = _hgz("xJDDoyB5w6p1IGPhuqd1IHThuqNpIENTVjog") + rows.length + _hgz("IGjhu5Mgc8ahLiBN4bufIGLhurFuZyBNaWNyb3NvZnQgRXhjZWwu");
 };
-el('exportPdf').onclick=()=>{
- const rows=backupRows(),win=window.open('','_blank');
- if(!win){el('backupStatus').textContent='Trình duyệt chặn cửa sổ in. Hãy cho phép pop-up rồi thử lại.';return;}
- const heads=backupColumns().map(x=>'<th>'+esc(x)+'</th>').join('');
- const trs=rows.map(r=>'<tr>'+backupValues(r).map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('');
- win.document.open();win.document.write('<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>HanziGo - Sao lưu danh sách</title><style>@page{size:A4 landscape;margin:12mm}body{font:11px Arial,sans-serif;color:#152338}h1{font-size:19px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccd5e0;padding:6px;overflow-wrap:anywhere}th{background:#eef2fa}tr{break-inside:avoid}.note{color:#57677c;margin-bottom:15px}@media print{button{display:none}}</style></head><body><h1>HanziGo — Danh sách tài khoản</h1><p class="note">Xuất lúc '+esc(new Date().toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}))+' · '+rows.length+' hồ sơ</p><table><thead><tr>'+heads+'</tr></thead><tbody>'+trs+'</tbody></table><p class="note">Tài liệu quản trị nội bộ — không chia sẻ công khai.</p><button onclick="window.print()">In / Lưu PDF</button></body></html>');win.document.close();win.focus();
- el('backupStatus').textContent='Đã mở bản in '+rows.length+' hồ sơ. Chọn máy in “Save as PDF” để lưu PDF.';
+el(_hgz("ZXhwb3J0UGRm")).onclick = () => {
+    const rows = backupRows(), win = window.open('', _hgz("X2JsYW5r"));
+    if (!win) {
+        el(_hgz("YmFja3VwU3RhdHVz")).textContent = _hgz("VHLDrG5oIGR1eeG7h3QgY2jhurduIGPhu61hIHPhu5UgaW4uIEjDo3kgY2hvIHBow6lwIHBvcC11cCBy4buTaSB0aOG7rSBs4bqhaS4=");
+        return;
+    }
+    const heads = backupColumns().map(x => _hgz("PHRoPg==") + esc(x) + _hgz("PC90aD4=")).join('');
+    const trs = rows.map(r => _hgz("PHRyPg==") + backupValues(r).map(x => _hgz("PHRkPg==") + esc(x) + _hgz("PC90ZD4=")).join('') + _hgz("PC90cj4=")).join('');
+    win.document.open();
+    win.document.write(_hgz("PCFkb2N0eXBlIGh0bWw+PGh0bWwgbGFuZz0idmkiPjxoZWFkPjxtZXRhIGNoYXJzZXQ9InV0Zi04Ij48dGl0bGU+SGFuemlHbyAtIFNhbyBsxrB1IGRhbmggc8OhY2g8L3RpdGxlPjxzdHlsZT5AcGFnZXtzaXplOkE0IGxhbmRzY2FwZTttYXJnaW46MTJtbX1ib2R5e2ZvbnQ6MTFweCBBcmlhbCxzYW5zLXNlcmlmO2NvbG9yOiMxNTIzMzh9aDF7Zm9udC1zaXplOjE5cHh9dGFibGV7d2lkdGg6MTAwJTtib3JkZXItY29sbGFwc2U6Y29sbGFwc2V9dGgsdGR7Ym9yZGVyOjFweCBzb2xpZCAjY2NkNWUwO3BhZGRpbmc6NnB4O292ZXJmbG93LXdyYXA6YW55d2hlcmV9dGh7YmFja2dyb3VuZDojZWVmMmZhfXRye2JyZWFrLWluc2lkZTphdm9pZH0ubm90ZXtjb2xvcjojNTc2NzdjO21hcmdpbi1ib3R0b206MTVweH1AbWVkaWEgcHJpbnR7YnV0dG9ue2Rpc3BsYXk6bm9uZX19PC9zdHlsZT48L2hlYWQ+PGJvZHk+PGgxPkhhbnppR28g4oCUIERhbmggc8OhY2ggdMOgaSBraG/huqNuPC9oMT48cCBjbGFzcz0ibm90ZSI+WHXhuqV0IGzDumMg") + esc(new Date().toLocaleString(_hgz("dmktVk4="), { timeZone: _hgz("QXNpYS9Ib19DaGlfTWluaA==") })) + _hgz("IMK3IA==") + rows.length + _hgz("IGjhu5Mgc8ahPC9wPjx0YWJsZT48dGhlYWQ+PHRyPg==") + heads + _hgz("PC90cj48L3RoZWFkPjx0Ym9keT4=") + trs + _hgz("PC90Ym9keT48L3RhYmxlPjxwIGNsYXNzPSJub3RlIj5Uw6BpIGxp4buHdSBxdeG6o24gdHLhu4sgbuG7mWkgYuG7mSDigJQga2jDtG5nIGNoaWEgc+G6uyBjw7RuZyBraGFpLjwvcD48YnV0dG9uIG9uY2xpY2s9IndpbmRvdy5wcmludCgpIj5JbiAvIEzGsHUgUERGPC9idXR0b24+PC9ib2R5PjwvaHRtbD4="));
+    win.document.close();
+    win.focus();
+    el(_hgz("YmFja3VwU3RhdHVz")).textContent = _hgz("xJDDoyBt4bufIGLhuqNuIGluIA==") + rows.length + _hgz("IGjhu5Mgc8ahLiBDaOG7jW4gbcOheSBpbiDigJxTYXZlIGFzIFBERuKAnSDEkeG7gyBsxrB1IFBERi4=");
 };
-
-
-// Local automatic snapshots: IndexedDB, per-admin, current-browser only.
-const hgBackupDb='HanziGoAdminBackupV1',hgBackupStore='snapshots';
-function hgOpenBackupDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(hgBackupDb,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(hgBackupStore))r.result.createObjectStore(hgBackupStore,{keyPath:'id'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
-async function hgBackupDbOp(mode,fn){const db=await hgOpenBackupDB();return new Promise((resolve,reject)=>{const tx=db.transaction(hgBackupStore,mode),store=tx.objectStore(hgBackupStore);let result;try{result=fn(store)}catch(e){db.close();reject(e);return}tx.oncomplete=()=>{db.close();resolve(result?.result)};tx.onerror=()=>{db.close();reject(tx.error)}})}
-const hgBackupLocalDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-function hgWeekStart(dateString){const d=new Date(dateString+'T12:00:00Z');const wd=d.getUTCDay();d.setUTCDate(d.getUTCDate()-((wd+6)%7));return d.toISOString().slice(0,10)}
-function hgAutoBackupData(){return {app:'HanziGo',type:'admin-local-backup',exportedAt:new Date().toISOString(),count:users.length,users:users.map(u=>({uid:u.id,...Object.fromEntries(Object.entries(u).filter(([k])=>k!=='id').map(([k,v])=>[k,v?.toDate?.()?.toISOString?.()??v]))}))}}
-async function hgBackupHistory(){if(!adminUid)return;const list=(await hgBackupDbOp('readonly',store=>store.getAll())||[]).filter(x=>x.owner===adminUid).sort((a,b)=>b.savedAt.localeCompare(a.savedAt));const area=el('backupHistory');area.replaceChildren();if(!list.length){area.textContent='Chưa có bản sao lưu tự động trên trình duyệt này.';return}const tbl=document.createElement('table');tbl.innerHTML='<thead><tr><th>Chu kỳ</th><th>Ngày</th><th>Hồ sơ</th><th>Tải về</th></tr></thead>';const body=document.createElement('tbody');for(const item of list){const tr=document.createElement('tr');for(const val of [item.period==='daily'?'Ngày':'Tuần',item.periodKey,String(item.data.count)]){const td=document.createElement('td');td.textContent=val;tr.append(td)}const td=document.createElement('td'),btn=document.createElement('button');btn.className='btn secondary small';btn.textContent='⬇ JSON';btn.onclick=()=>backupDownload(`HanziGo_${item.period}_${item.periodKey}.json`,'application/json;charset=utf-8',JSON.stringify(item.data,null,2));td.append(btn);tr.append(td);body.append(tr)}tbl.append(body);area.append(tbl)}
-let hgAutoBusy=false;
-async function hgAutoBackupCheck(force=false){
- if(!adminUid||hgAutoBusy)return;hgAutoBusy=true;
- try{
-  const today=hgBackupLocalDate(),periods=[['daily',today,el('autoDaily').checked],['weekly',hgWeekStart(today),el('autoWeekly').checked]];
-  let added=[];
-  for(const [period,key,enabled] of periods){if(!enabled&&!force)continue;const id=adminUid+':'+period+':'+key;const existing=await hgBackupDbOp('readonly',store=>store.get(id));if(existing&&!force)continue;
-   const record={id,owner:adminUid,period,periodKey:key,savedAt:new Date().toISOString(),data:hgAutoBackupData()};await hgBackupDbOp('readwrite',store=>store.put(record));added.push(period==='daily'?'ngày':'tuần');
-  }
-  const all=(await hgBackupDbOp('readonly',store=>store.getAll())||[]).filter(x=>x.owner===adminUid).sort((a,b)=>b.savedAt.localeCompare(a.savedAt));
-  for(const period of ['daily','weekly']){const older=all.filter(x=>x.period===period).slice(period==='daily'?14:8);for(const item of older)await hgBackupDbOp('readwrite',store=>store.delete(item.id))}
-  el('autoBackupState').textContent=added.length?'Đã lưu tự động bản '+added.join(' và ')+' lúc '+new Date().toLocaleString('vi-VN')+'.':'Đã kiểm tra: bản sao lưu của chu kỳ hiện tại đã có. Dữ liệu được lưu trên trình duyệt này.';
-  await hgBackupHistory();
- }catch(e){el('autoBackupState').textContent='Không thể sao lưu tự động: '+e.message+' (kiểm tra quyền lưu trữ trình duyệt).'}finally{hgAutoBusy=false}
+const hgBackupDb = _hgz("SGFuemlHb0FkbWluQmFja3VwVjE="), hgBackupStore = _hgz("c25hcHNob3Rz");
+function hgOpenBackupDB() { return new Promise((resolve, reject) => { const r = indexedDB.open(hgBackupDb, 1); r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains(hgBackupStore))
+    r.result.createObjectStore(hgBackupStore, { keyPath: 'id' }); }; r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); }); }
+async function hgBackupDbOp(mode, fn) { const db = await hgOpenBackupDB(); return new Promise((resolve, reject) => { const tx = db.transaction(hgBackupStore, mode), store = tx.objectStore(hgBackupStore); let result; try {
+    result = fn(store);
 }
-el('autoBackupNow').onclick=()=>hgAutoBackupCheck(true);
-setInterval(()=>{if(adminUid&&users.length)hgAutoBackupCheck()},15*60*1000);
-
-
-// Phục hồi có xem trước, giới hạn vào hồ sơ đang tồn tại và các trường cho phép.
-let hgRestoreItems=[];
-const hgRestoreBasic=['email','displayName','photoURL','createdAt','trialStartAt','trialStartedAt','xp','streak','lastActiveAt'];
-const hgRestoreDateFields=new Set(['createdAt','trialStartAt','trialStartedAt','lastActiveAt','premiumUntil','disabledAt']);
-function hgRestoreParseDate(v){
- if(v==null)return null;
- if(typeof v==='string'){const d=new Date(v);if(!Number.isFinite(d.getTime()))throw Error('Ngày không hợp lệ: '+v);return Timestamp.fromDate(d)}
- if(typeof v==='object'&&typeof v.seconds==='number')return new Timestamp(v.seconds,Number(v.nanoseconds)||0);
- throw Error('Định dạng ngày không hỗ trợ');
+catch (e) {
+    db.close();
+    reject(e);
+    return;
+} tx.oncomplete = () => { db.close(); resolve(result?.result); }; tx.onerror = () => { db.close(); reject(tx.error); }; }); }
+const hgBackupLocalDate = () => new Intl.DateTimeFormat(_hgz("ZW4tQ0E="), { timeZone: _hgz("QXNpYS9Ib19DaGlfTWluaA=="), year: _hgz("bnVtZXJpYw=="), month: _hgz("Mi1kaWdpdA=="), day: _hgz("Mi1kaWdpdA==") }).format(new Date());
+function hgWeekStart(dateString) { const d = new Date(dateString + _hgz("VDEyOjAwOjAwWg==")); const wd = d.getUTCDay(); d.setUTCDate(d.getUTCDate() - ((wd + 6) % 7)); return d.toISOString().slice(0, 10); }
+function hgAutoBackupData() { return { app: _hgz("SGFuemlHbw=="), type: _hgz("YWRtaW4tbG9jYWwtYmFja3Vw"), exportedAt: new Date().toISOString(), count: users.length, users: users.map(u => ({ uid: u.id, ...Object.fromEntries(Object.entries(u).filter(([k]) => k !== 'id').map(([k, v]) => [k, v?.toDate?.()?.toISOString?.() ?? v])) })) }; }
+async function hgBackupHistory() { if (!adminUid)
+    return; const list = (await hgBackupDbOp(_hgz("cmVhZG9ubHk="), store => store.getAll()) || []).filter(x => x.owner === adminUid).sort((a, b) => b.savedAt.localeCompare(a.savedAt)); const area = el(_hgz("YmFja3VwSGlzdG9yeQ==")); area.replaceChildren(); if (!list.length) {
+    area.textContent = _hgz("Q2jGsGEgY8OzIGLhuqNuIHNhbyBsxrB1IHThu7EgxJHhu5luZyB0csOqbiB0csOsbmggZHV54buHdCBuw6B5Lg==");
+    return;
+} const tbl = document.createElement(_hgz("dGFibGU=")); tbl.innerHTML = _hgz("PHRoZWFkPjx0cj48dGg+Q2h1IGvhu7M8L3RoPjx0aD5OZ8OgeTwvdGg+PHRoPkjhu5Mgc8ahPC90aD48dGg+VOG6o2kgduG7gTwvdGg+PC90cj48L3RoZWFkPg=="); const body = document.createElement(_hgz("dGJvZHk=")); for (const item of list) {
+    const tr = document.createElement('tr');
+    for (const val of [item.period === _hgz("ZGFpbHk=") ? _hgz("TmfDoHk=") : _hgz("VHXhuqdu"), item.periodKey, String(item.data.count)]) {
+        const td = document.createElement('td');
+        td.textContent = val;
+        tr.append(td);
+    }
+    const td = document.createElement('td'), btn = document.createElement(_hgz("YnV0dG9u"));
+    btn.className = _hgz("YnRuIHNlY29uZGFyeSBzbWFsbA==");
+    btn.textContent = _hgz("4qyHIEpTT04=");
+    btn.onclick = () => backupDownload(`HanziGo_${item.period}_${item.periodKey}.json`, _hgz("YXBwbGljYXRpb24vanNvbjtjaGFyc2V0PXV0Zi04"), JSON.stringify(item.data, null, 2));
+    td.append(btn);
+    tr.append(td);
+    body.append(tr);
+} tbl.append(body); area.append(tbl); }
+let hgAutoBusy = false;
+async function hgAutoBackupCheck(force = false) {
+    if (!adminUid || hgAutoBusy)
+        return;
+    hgAutoBusy = true;
+    try {
+        const today = hgBackupLocalDate(), periods = [[_hgz("ZGFpbHk="), today, el(_hgz("YXV0b0RhaWx5")).checked], [_hgz("d2Vla2x5"), hgWeekStart(today), el(_hgz("YXV0b1dlZWtseQ==")).checked]];
+        let added = [];
+        for (const [period, key, enabled] of periods) {
+            if (!enabled && !force)
+                continue;
+            const id = adminUid + ':' + period + ':' + key;
+            const existing = await hgBackupDbOp(_hgz("cmVhZG9ubHk="), store => store.get(id));
+            if (existing && !force)
+                continue;
+            const record = { id, owner: adminUid, period, periodKey: key, savedAt: new Date().toISOString(), data: hgAutoBackupData() };
+            await hgBackupDbOp(_hgz("cmVhZHdyaXRl"), store => store.put(record));
+            added.push(period === _hgz("ZGFpbHk=") ? _hgz("bmfDoHk=") : _hgz("dHXhuqdu"));
+        }
+        const all = (await hgBackupDbOp(_hgz("cmVhZG9ubHk="), store => store.getAll()) || []).filter(x => x.owner === adminUid).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+        for (const period of [_hgz("ZGFpbHk="), _hgz("d2Vla2x5")]) {
+            const older = all.filter(x => x.period === period).slice(period === _hgz("ZGFpbHk=") ? 14 : 8);
+            for (const item of older)
+                await hgBackupDbOp(_hgz("cmVhZHdyaXRl"), store => store.delete(item.id));
+        }
+        el(_hgz("YXV0b0JhY2t1cFN0YXRl")).textContent = added.length ? _hgz("xJDDoyBsxrB1IHThu7EgxJHhu5luZyBi4bqjbiA=") + added.join(_hgz("IHbDoCA=")) + _hgz("IGzDumMg") + new Date().toLocaleString(_hgz("dmktVk4=")) + '.' : _hgz("xJDDoyBraeG7g20gdHJhOiBi4bqjbiBzYW8gbMawdSBj4bunYSBjaHUga+G7syBoaeG7h24gdOG6oWkgxJHDoyBjw7MuIEThu68gbGnhu4d1IMSRxrDhu6NjIGzGsHUgdHLDqm4gdHLDrG5oIGR1eeG7h3QgbsOgeS4=");
+        await hgBackupHistory();
+    }
+    catch (e) {
+        el(_hgz("YXV0b0JhY2t1cFN0YXRl")).textContent = _hgz("S2jDtG5nIHRo4buDIHNhbyBsxrB1IHThu7EgxJHhu5luZzog") + e.message + _hgz("IChraeG7g20gdHJhIHF1eeG7gW4gbMawdSB0cuG7ryB0csOsbmggZHV54buHdCku");
+    }
+    finally {
+        hgAutoBusy = false;
+    }
 }
-function hgRestorePayload(item){
- const data={};
- for(const k of hgRestoreBasic){if(Object.prototype.hasOwnProperty.call(item,k)){
-  const v=item[k];if(v!==null&&typeof v==='object'&&!hgRestoreDateFields.has(k))continue;
-  if(k==='email'&&typeof v!=='string')continue;
-  if(['xp','streak'].includes(k)&&(!Number.isFinite(v)||v<0))continue;
-  data[k]=hgRestoreDateFields.has(k)?hgRestoreParseDate(v):v;
- }}
- if(el('restorePremium').checked&&Object.prototype.hasOwnProperty.call(item,'premiumUntil'))data.premiumUntil=hgRestoreParseDate(item.premiumUntil);
- 
- return data;
+el(_hgz("YXV0b0JhY2t1cE5vdw==")).onclick = () => hgAutoBackupCheck(true);
+setInterval(() => { if (adminUid && users.length)
+    hgAutoBackupCheck(); }, 15 * 60 * 1000);
+let hgRestoreItems = [];
+const hgRestoreBasic = [_hgz("ZW1haWw="), _hgz("ZGlzcGxheU5hbWU="), _hgz("cGhvdG9VUkw="), _hgz("Y3JlYXRlZEF0"), _hgz("dHJpYWxTdGFydEF0"), _hgz("dHJpYWxTdGFydGVkQXQ="), 'xp', _hgz("c3RyZWFr"), _hgz("bGFzdEFjdGl2ZUF0")];
+const hgRestoreDateFields = new Set([_hgz("Y3JlYXRlZEF0"), _hgz("dHJpYWxTdGFydEF0"), _hgz("dHJpYWxTdGFydGVkQXQ="), _hgz("bGFzdEFjdGl2ZUF0"), _hgz("cHJlbWl1bVVudGls"), _hgz("ZGlzYWJsZWRBdA==")]);
+function hgRestoreParseDate(v) {
+    if (v == null)
+        return null;
+    if (typeof v === _hgz("c3RyaW5n")) {
+        const d = new Date(v);
+        if (!Number.isFinite(d.getTime()))
+            throw Error(_hgz("TmfDoHkga2jDtG5nIGjhu6NwIGzhu4c6IA==") + v);
+        return Timestamp.fromDate(d);
+    }
+    if (typeof v === _hgz("b2JqZWN0") && typeof v.seconds === _hgz("bnVtYmVy"))
+        return new Timestamp(v.seconds, Number(v.nanoseconds) || 0);
+    throw Error(_hgz("xJDhu4tuaCBk4bqhbmcgbmfDoHkga2jDtG5nIGjhu5cgdHLhu6M="));
 }
-function hgRestoreRender(){
- const box=el('restoreTable');box.replaceChildren();if(!hgRestoreItems.length)return;
- const table=document.createElement('table');table.innerHTML='<thead><tr><th>Chọn</th><th>Email / UID</th><th>Trạng thái</th><th>Trường có thể phục hồi</th></tr></thead>';
- const body=document.createElement('tbody');for(const entry of hgRestoreItems){const tr=document.createElement('tr'),td=document.createElement('td');
- const cb=document.createElement('input');cb.type='checkbox';cb.className='hg-restore-check';cb.dataset.uid=entry.uid;cb.disabled=!entry.exists||entry.uid===adminUid;cb.checked=entry.exists&&entry.uid!==adminUid;td.append(cb);tr.append(td);
- for(const val of [(entry.email||'(không có email)')+' / '+entry.uid.slice(0,6).toUpperCase(),entry.exists?'Đang tồn tại':'Không có trên Firestore — bỏ qua',entry.exists?Object.keys(hgRestorePayload(entry.data)).join(', ')||'Không có trường hỗ trợ':'—']){const cell=document.createElement('td');cell.textContent=val;tr.append(cell)}body.append(tr)}table.append(body);box.append(table);
- el('restoreApply').disabled=!hgRestoreItems.some(x=>x.exists&&x.uid!==adminUid);
+function hgRestorePayload(item) {
+    const data = {};
+    for (const k of hgRestoreBasic) {
+        if (Object.prototype.hasOwnProperty.call(item, k)) {
+            const v = item[k];
+            if (v !== null && typeof v === _hgz("b2JqZWN0") && !hgRestoreDateFields.has(k))
+                continue;
+            if (k === _hgz("ZW1haWw=") && typeof v !== _hgz("c3RyaW5n"))
+                continue;
+            if (['xp', _hgz("c3RyZWFr")].includes(k) && (!Number.isFinite(v) || v < 0))
+                continue;
+            data[k] = hgRestoreDateFields.has(k) ? hgRestoreParseDate(v) : v;
+        }
+    }
+    if (el(_hgz("cmVzdG9yZVByZW1pdW0=")).checked && Object.prototype.hasOwnProperty.call(item, _hgz("cHJlbWl1bVVudGls")))
+        data.premiumUntil = hgRestoreParseDate(item.premiumUntil);
+    return data;
 }
-async function hgRestorePreview(){
- el('restoreApply').disabled=true;hgRestoreItems=[];el('restoreTable').replaceChildren();
- const file=el('restoreFile').files?.[0];if(!file){el('restoreSummary').textContent='Hãy chọn file JSON trước.';return}
- if(file.size>15*1024*1024){el('restoreSummary').textContent='File lớn hơn 15 MB, không thể xem trước trong trang này.';return}
- try{
-  const data=JSON.parse(await file.text());if(data.app!=='HanziGo'||!Array.isArray(data.users))throw Error('Không đúng định dạng sao lưu HanziGo');
-  if(data.users.length>10000)throw Error('Bản sao lưu có quá nhiều hồ sơ');
-  const seen=new Set();for(const item of data.users){
-   const uid=item.uid||item.id;if(typeof uid!=='string'||!/^[A-Za-z0-9]{6,128}$/.test(uid)||seen.has(uid))throw Error('UID thiếu, trùng hoặc không hợp lệ');
-   seen.add(uid);const existing=users.find(u=>u.id===uid);
-   hgRestoreItems.push({uid,email:item.email||existing?.email||'',exists:!!existing,data:item});
-  }
-  hgRestoreRender();el('restoreSummary').textContent=`Đã đọc ${hgRestoreItems.length} hồ sơ; ${hgRestoreItems.filter(x=>x.exists).length} hồ sơ đang tồn tại. Hãy kiểm tra kỹ trước khi phục hồi.`;
- }catch(e){hgRestoreItems=[];el('restoreSummary').textContent='Không đọc được bản sao lưu: '+e.message}
+function hgRestoreRender() {
+    const box = el(_hgz("cmVzdG9yZVRhYmxl"));
+    box.replaceChildren();
+    if (!hgRestoreItems.length)
+        return;
+    const table = document.createElement(_hgz("dGFibGU="));
+    table.innerHTML = _hgz("PHRoZWFkPjx0cj48dGg+Q2jhu41uPC90aD48dGg+RW1haWwgLyBVSUQ8L3RoPjx0aD5UcuG6oW5nIHRow6FpPC90aD48dGg+VHLGsOG7nW5nIGPDsyB0aOG7gyBwaOG7pWMgaOG7k2k8L3RoPjwvdHI+PC90aGVhZD4=");
+    const body = document.createElement(_hgz("dGJvZHk="));
+    for (const entry of hgRestoreItems) {
+        const tr = document.createElement('tr'), td = document.createElement('td');
+        const cb = document.createElement(_hgz("aW5wdXQ="));
+        cb.type = _hgz("Y2hlY2tib3g=");
+        cb.className = _hgz("aGctcmVzdG9yZS1jaGVjaw==");
+        cb.dataset.uid = entry.uid;
+        cb.disabled = !entry.exists || entry.uid === adminUid;
+        cb.checked = entry.exists && entry.uid !== adminUid;
+        td.append(cb);
+        tr.append(td);
+        for (const val of [(entry.email || _hgz("KGtow7RuZyBjw7MgZW1haWwp")) + _hgz("IC8g") + entry.uid.slice(0, 6).toUpperCase(), entry.exists ? _hgz("xJBhbmcgdOG7k24gdOG6oWk=") : _hgz("S2jDtG5nIGPDsyB0csOqbiBGaXJlc3RvcmUg4oCUIGLhu48gcXVh"), entry.exists ? Object.keys(hgRestorePayload(entry.data)).join(', ') || _hgz("S2jDtG5nIGPDsyB0csaw4budbmcgaOG7lyB0cuG7ow==") : '—']) {
+            const cell = document.createElement('td');
+            cell.textContent = val;
+            tr.append(cell);
+        }
+        body.append(tr);
+    }
+    table.append(body);
+    box.append(table);
+    el(_hgz("cmVzdG9yZUFwcGx5")).disabled = !hgRestoreItems.some(x => x.exists && x.uid !== adminUid);
 }
-el('restorePreview').onclick=hgRestorePreview;
-el('restorePremium').onchange=()=>{if(hgRestoreItems.length)hgRestoreRender()};
-el('restoreDisabled').onchange=()=>{if(hgRestoreItems.length)hgRestoreRender()};
-el('restoreApply').onclick=async()=>{
- if(!adminUid)return;const chosen=[...document.querySelectorAll('.hg-restore-check:checked')].map(x=>x.dataset.uid);
- if(!chosen.length){el('restoreStatus').textContent='Chưa chọn hồ sơ nào.';return}
- const msg=`PHỤC HỒI ${chosen.length} hồ sơ đang tồn tại?\n\n${el('restorePremium').checked?'CÓ ghi đè hạn Premium.':'KHÔNG ghi đè hạn Premium.'}\n${el('restoreDisabled').checked?'CÓ ghi đè trạng thái vô hiệu hóa.':'KHÔNG ghi đè trạng thái vô hiệu hóa.'}\n\nThao tác này sẽ ghi dữ liệu vào Firestore.`;
- if(!confirm(msg))return;
- const typed=prompt('Nhập chính xác PHUC HOI để xác nhận:');if(typed!=='PHUC HOI')return;
- const btn=el('restoreApply');btn.disabled=true;let ok=0,fail=0;const errors=[];
- for(const uid of chosen){try{
-  if(uid===adminUid)throw Error('Không phục hồi hồ sơ quản trị');
-  const entry=hgRestoreItems.find(x=>x.uid===uid);if(!entry||!entry.exists)throw Error('Không có trong danh sách hiện tại');
-  const payload=hgRestorePayload(entry.data);if(!Object.keys(payload).length)throw Error('Không có trường hỗ trợ');
-  const ref=doc(db,'users',uid);await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error('Hồ sơ đã bị xóa khỏi Firestore');tx.update(ref,payload)});ok++;
- }catch(e){fail++;errors.push(uid.slice(0,6)+': '+e.message)}}
- el('restoreStatus').textContent=`Phục hồi xong: ${ok} thành công, ${fail} thất bại. ${errors.slice(0,4).join(' | ')}`;
- hgRestoreItems=[];el('restoreTable').replaceChildren();await load();
+async function hgRestorePreview() {
+    el(_hgz("cmVzdG9yZUFwcGx5")).disabled = true;
+    hgRestoreItems = [];
+    el(_hgz("cmVzdG9yZVRhYmxl")).replaceChildren();
+    const file = el(_hgz("cmVzdG9yZUZpbGU=")).files?.[0];
+    if (!file) {
+        el(_hgz("cmVzdG9yZVN1bW1hcnk=")).textContent = _hgz("SMOjeSBjaOG7jW4gZmlsZSBKU09OIHRyxrDhu5tjLg==");
+        return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+        el(_hgz("cmVzdG9yZVN1bW1hcnk=")).textContent = _hgz("RmlsZSBs4bubbiBoxqFuIDE1IE1CLCBraMO0bmcgdGjhu4MgeGVtIHRyxrDhu5tjIHRyb25nIHRyYW5nIG7DoHku");
+        return;
+    }
+    try {
+        const data = JSON.parse(await file.text());
+        if (data.app !== _hgz("SGFuemlHbw==") || !Array.isArray(data.users))
+            throw Error(_hgz("S2jDtG5nIMSRw7puZyDEkeG7i25oIGThuqFuZyBzYW8gbMawdSBIYW56aUdv"));
+        if (data.users.length > 10000)
+            throw Error(_hgz("QuG6o24gc2FvIGzGsHUgY8OzIHF1w6Egbmhp4buBdSBo4buTIHPGoQ=="));
+        const seen = new Set();
+        for (const item of data.users) {
+            const uid = item.uid || item.id;
+            if (typeof uid !== _hgz("c3RyaW5n") || !/^[A-Za-z0-9]{6,128}$/.test(uid) || seen.has(uid))
+                throw Error(_hgz("VUlEIHRoaeG6v3UsIHRyw7luZyBob+G6t2Mga2jDtG5nIGjhu6NwIGzhu4c="));
+            seen.add(uid);
+            const existing = users.find(u => u.id === uid);
+            hgRestoreItems.push({ uid, email: item.email || existing?.email || '', exists: !!existing, data: item });
+        }
+        hgRestoreRender();
+        el(_hgz("cmVzdG9yZVN1bW1hcnk=")).textContent = `Đã đọc ${hgRestoreItems.length} hồ sơ; ${hgRestoreItems.filter(x => x.exists).length} hồ sơ đang tồn tại. Hãy kiểm tra kỹ trước khi phục hồi.`;
+    }
+    catch (e) {
+        hgRestoreItems = [];
+        el(_hgz("cmVzdG9yZVN1bW1hcnk=")).textContent = _hgz("S2jDtG5nIMSR4buNYyDEkcaw4bujYyBi4bqjbiBzYW8gbMawdTog") + e.message;
+    }
+}
+el(_hgz("cmVzdG9yZVByZXZpZXc=")).onclick = hgRestorePreview;
+el(_hgz("cmVzdG9yZVByZW1pdW0=")).onchange = () => { if (hgRestoreItems.length)
+    hgRestoreRender(); };
+el(_hgz("cmVzdG9yZURpc2FibGVk")).onchange = () => { if (hgRestoreItems.length)
+    hgRestoreRender(); };
+el(_hgz("cmVzdG9yZUFwcGx5")).onclick = async () => {
+    if (!adminUid)
+        return;
+    const chosen = [...document.querySelectorAll(_hgz("LmhnLXJlc3RvcmUtY2hlY2s6Y2hlY2tlZA=="))].map(x => x.dataset.uid);
+    if (!chosen.length) {
+        el(_hgz("cmVzdG9yZVN0YXR1cw==")).textContent = _hgz("Q2jGsGEgY2jhu41uIGjhu5Mgc8ahIG7DoG8u");
+        return;
+    }
+    const msg = `PHỤC HỒI ${chosen.length} hồ sơ đang tồn tại?\n\n${el(_hgz("cmVzdG9yZVByZW1pdW0=")).checked ? _hgz("Q8OTIGdoaSDEkcOoIGjhuqFuIFByZW1pdW0u") : _hgz("S0jDlE5HIGdoaSDEkcOoIGjhuqFuIFByZW1pdW0u")}\n${el(_hgz("cmVzdG9yZURpc2FibGVk")).checked ? _hgz("Q8OTIGdoaSDEkcOoIHRy4bqhbmcgdGjDoWkgdsO0IGhp4buHdSBow7NhLg==") : _hgz("S0jDlE5HIGdoaSDEkcOoIHRy4bqhbmcgdGjDoWkgdsO0IGhp4buHdSBow7NhLg==")}\n\nThao tác này sẽ ghi dữ liệu vào Firestore.`;
+    if (!confirm(msg))
+        return;
+    const typed = prompt(_hgz("Tmjhuq1wIGNow61uaCB4w6FjIFBIVUMgSE9JIMSR4buDIHjDoWMgbmjhuq1uOg=="));
+    if (typed !== _hgz("UEhVQyBIT0k="))
+        return;
+    const btn = el(_hgz("cmVzdG9yZUFwcGx5"));
+    btn.disabled = true;
+    let ok = 0, fail = 0;
+    const errors = [];
+    for (const uid of chosen) {
+        try {
+            if (uid === adminUid)
+                throw Error(_hgz("S2jDtG5nIHBo4bulYyBo4buTaSBo4buTIHPGoSBxdeG6o24gdHLhu4s="));
+            const entry = hgRestoreItems.find(x => x.uid === uid);
+            if (!entry || !entry.exists)
+                throw Error(_hgz("S2jDtG5nIGPDsyB0cm9uZyBkYW5oIHPDoWNoIGhp4buHbiB04bqhaQ=="));
+            const payload = hgRestorePayload(entry.data);
+            if (!Object.keys(payload).length)
+                throw Error(_hgz("S2jDtG5nIGPDsyB0csaw4budbmcgaOG7lyB0cuG7ow=="));
+            const ref = doc(db, _hgz("dXNlcnM="), uid);
+            await runTransaction(db, async (tx) => { const snap = await tx.get(ref); if (!snap.exists())
+                throw Error(_hgz("SOG7kyBzxqEgxJHDoyBi4buLIHjDs2Ega2jhu49pIEZpcmVzdG9yZQ==")); tx.update(ref, payload); });
+            ok++;
+        }
+        catch (e) {
+            fail++;
+            errors.push(uid.slice(0, 6) + ': ' + e.message);
+        }
+    }
+    el(_hgz("cmVzdG9yZVN0YXR1cw==")).textContent = `Phục hồi xong: ${ok} thành công, ${fail} thất bại. ${errors.slice(0, 4).join(_hgz("IHwg"))}`;
+    hgRestoreItems = [];
+    el(_hgz("cmVzdG9yZVRhYmxl")).replaceChildren();
+    await load();
 };
-
-
-el('daily').onclick=()=>snapshotBackup('daily');el('weekly').onclick=()=>snapshotBackup('weekly');
-el('login').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>el('authError').textContent=e.message);el('logout').onclick=()=>{users=[];signOut(auth)};el('search').oninput=render;el('filter').onchange=render;el('refresh').onclick=load;
-
-// Mỗi phiên đăng nhập Admin thành công: tự tải một bản TXT đầy đủ.
-// Không gửi email, không phụ thuộc Cloud Functions hay sao lưu IndexedDB.
-let hgLoginBackupDone=false;
-function hgBackupOnLogin(){
- if(!adminUid||hgLoginBackupDone)return;
- hgLoginBackupDone=true;
- const stamp=new Date().toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'});
- const lines=['HANZIGO - SAO LƯU DANH SÁCH TÀI KHOẢN','Thời điểm xuất: '+stamp,'Tổng số hồ sơ: '+users.length,''];
- for(const u of users){lines.push('Email: '+(u.email||''),'UID: '+u.id,'UID 6 ký tự: '+u.id.slice(0,6).toUpperCase(),'Trạng thái: '+label(kind(u)),'Ngày tạo: '+fmt(date(u.createdAt)),'Premium đến: '+fmt(date(u.premiumUntil)),'Vô hiệu: '+(u.disabled===true?'Có':'Không'),'');}
- const t=new Date(Date.now()+7*3600000).toISOString().slice(0,19).replace('T','_').replace(/:/g,'-');
- backupDownload('HanziGo_Sao_Luu_Dang_Nhap_'+t+'.txt','text/plain;charset=utf-8','\uFEFF'+lines.join('\r\n'));
- el('backupStatus').textContent='Đã yêu cầu tự tải file TXT khi đăng nhập: '+users.length+' hồ sơ. Nếu Chrome chặn tải, bấm nút “⬇ Tải TXT” phía trên.';
+el(_hgz("ZGFpbHk=")).onclick = () => snapshotBackup(_hgz("ZGFpbHk="));
+el(_hgz("d2Vla2x5")).onclick = () => snapshotBackup(_hgz("d2Vla2x5"));
+el(_hgz("bG9naW4=")).onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => el(_hgz("YXV0aEVycm9y")).textContent = e.message);
+el(_hgz("bG9nb3V0")).onclick = () => { users = []; signOut(auth); };
+el(_hgz("c2VhcmNo")).oninput = render;
+el(_hgz("ZmlsdGVy")).onchange = render;
+el(_hgz("cmVmcmVzaA==")).onclick = load;
+let hgLoginBackupDone = false;
+function hgBackupOnLogin() {
+    if (!adminUid || hgLoginBackupDone)
+        return;
+    hgLoginBackupDone = true;
+    const stamp = new Date().toLocaleString(_hgz("dmktVk4="), { timeZone: _hgz("QXNpYS9Ib19DaGlfTWluaA==") });
+    const lines = [_hgz("SEFOWklHTyAtIFNBTyBMxq9VIERBTkggU8OBQ0ggVMOASSBLSE/huqJO"), _hgz("VGjhu51pIMSRaeG7g20geHXhuqV0OiA=") + stamp, _hgz("VOG7lW5nIHPhu5EgaOG7kyBzxqE6IA==") + users.length, ''];
+    for (const u of users) {
+        lines.push(_hgz("RW1haWw6IA==") + (u.email || ''), _hgz("VUlEOiA=") + u.id, _hgz("VUlEIDYga8O9IHThu7E6IA==") + u.id.slice(0, 6).toUpperCase(), _hgz("VHLhuqFuZyB0aMOhaTog") + label(kind(u)), _hgz("TmfDoHkgdOG6oW86IA==") + fmt(date(u.createdAt)), _hgz("UHJlbWl1bSDEkeG6v246IA==") + fmt(date(u.premiumUntil)), _hgz("VsO0IGhp4buHdTog") + (u.disabled === true ? 'Có' : _hgz("S2jDtG5n")), '');
+    }
+    const t = new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
+    backupDownload(_hgz("SGFuemlHb19TYW9fTHV1X0RhbmdfTmhhcF8=") + t + _hgz("LnR4dA=="), _hgz("dGV4dC9wbGFpbjtjaGFyc2V0PXV0Zi04"), '\uFEFF' + lines.join('\r\n'));
+    el(_hgz("YmFja3VwU3RhdHVz")).textContent = _hgz("xJDDoyB5w6p1IGPhuqd1IHThu7EgdOG6o2kgZmlsZSBUWFQga2hpIMSRxINuZyBuaOG6rXA6IA==") + users.length + _hgz("IGjhu5Mgc8ahLiBO4bq/dSBDaHJvbWUgY2jhurduIHThuqNpLCBi4bqlbSBuw7p0IOKAnOKshyBU4bqjaSBUWFTigJ0gcGjDrWEgdHLDqm4u");
 }
-el('csv').onclick=()=>{const lines=[['UID','Email','Trang thai','Ngay tao ho so','Premium den'],...users.map(u=>[u.id,u.email||'',label(kind(u)),fmt(date(u.createdAt)),fmt(date(u.premiumUntil))])];const csv='﻿'+lines.map(row=>row.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='hanzigo-thong-ke.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);};
-onAuthStateChanged(auth,async user=>{adminUid=null;hgLoginBackupDone=false;el('dashboard').classList.add('hide');el('authPanel').classList.remove('hide');el('logout').classList.toggle('hide',!user);if(!user){el('authStatus').textContent='Đăng nhập bằng tài khoản Admin đã được cấp quyền.';return;}el('authStatus').textContent='Đang kiểm tra quyền quản trị…';try{const d=await getDoc(doc(db,'admins',user.uid));if(!d.exists()||d.data().enabled!==true){el('authStatus').textContent='Tài khoản '+user.email+' chưa được cấp quyền Admin.';return;}adminUid=user.uid;el('authPanel').classList.add('hide');el('dashboard').classList.remove('hide');await load();}catch(e){el('authStatus').textContent='Không xác minh được quyền Admin: '+e.message;}});
+el(_hgz("Y3N2")).onclick = () => { const lines = [[_hgz("VUlE"), _hgz("RW1haWw="), _hgz("VHJhbmcgdGhhaQ=="), _hgz("TmdheSB0YW8gaG8gc28="), _hgz("UHJlbWl1bSBkZW4=")], ...users.map(u => [u.id, u.email || '', label(kind(u)), fmt(date(u.createdAt)), fmt(date(u.premiumUntil))])]; const csv = '﻿' + lines.map(row => row.map(x => '"' + String(x).replaceAll('"', '""') + '"').join(',')).join('\r\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: _hgz("dGV4dC9jc3Y7Y2hhcnNldD11dGYtOA==") })); a.download = _hgz("aGFuemlnby10aG9uZy1rZS5jc3Y="); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+onAuthStateChanged(auth, async (user) => { adminUid = null; hgLoginBackupDone = false; el(_hgz("ZGFzaGJvYXJk")).classList.add(_hgz("aGlkZQ==")); el(_hgz("YXV0aFBhbmVs")).classList.remove(_hgz("aGlkZQ==")); el(_hgz("bG9nb3V0")).classList.toggle(_hgz("aGlkZQ=="), !user); if (!user) {
+    el(_hgz("YXV0aFN0YXR1cw==")).textContent = _hgz("xJDEg25nIG5o4bqtcCBi4bqxbmcgdMOgaSBraG/huqNuIEFkbWluIMSRw6MgxJHGsOG7o2MgY+G6pXAgcXV54buBbi4=");
+    return;
+} el(_hgz("YXV0aFN0YXR1cw==")).textContent = _hgz("xJBhbmcga2nhu4NtIHRyYSBxdXnhu4FuIHF14bqjbiB0cuG7i+KApg=="); try {
+    const d = await getDoc(doc(db, _hgz("YWRtaW5z"), user.uid));
+    if (!d.exists() || d.data().enabled !== true) {
+        el(_hgz("YXV0aFN0YXR1cw==")).textContent = _hgz("VMOgaSBraG/huqNuIA==") + user.email + _hgz("IGNoxrBhIMSRxrDhu6NjIGPhuqVwIHF1eeG7gW4gQWRtaW4u");
+        return;
+    }
+    adminUid = user.uid;
+    el(_hgz("YXV0aFBhbmVs")).classList.add(_hgz("aGlkZQ=="));
+    el(_hgz("ZGFzaGJvYXJk")).classList.remove(_hgz("aGlkZQ=="));
+    await load();
+}
+catch (e) {
+    el(_hgz("YXV0aFN0YXR1cw==")).textContent = _hgz("S2jDtG5nIHjDoWMgbWluaCDEkcaw4bujYyBxdXnhu4FuIEFkbWluOiA=") + e.message;
+} });
+
 </script></body></html>
