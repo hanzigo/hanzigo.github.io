@@ -5,7 +5,8 @@
 <main id="dashboard" class="hide"><div class="cards"><div class="metric">Tổng hồ sơ học viên<b id="total">0</b></div><div class="metric">Đang dùng thử<b id="trial">0</b></div><div class="metric">Premium còn hạn<b id="premium">0</b></div><div class="metric">Đã hết hạn<b id="expired">0</b></div><div class="metric">Premium sắp hết hạn (≤7 ngày)<b id="soon">0</b></div></div>
 <section class="panel"><h2>Tỷ lệ trạng thái học viên</h2><div id="bar" class="bar"></div><p id="chartLegend" class="muted"></p><p class="muted">Số liệu dựa trên hồ sơ có trong Firestore. Tài khoản cũ chưa từng được ghi hồ sơ có thể chưa xuất hiện.</p></section>
 <section class="panel"><h2>Danh sách tài khoản</h2><div class="tools"><input id="search" placeholder="Tìm email hoặc UID"><select id="filter"><option value="all">Tất cả</option><option value="trial">Đang dùng thử</option><option value="premium">Premium</option><option value="expired">Hết hạn</option><option value="disabled">Vô hiệu</option></select><button id="refresh" class="btn secondary">Làm mới</button><button id="csv" class="btn secondary">Xuất CSV</button><button id="daily" class="btn secondary">Sao lưu ngày</button><button id="weekly" class="btn secondary">Sao lưu tuần</button></div><div class="scroll"><table><thead><tr><th>Email</th><th>UID (6 ký tự)</th><th>Trạng thái</th><th>Ngày tạo hồ sơ</th><th>Premium đến</th><th>Thao tác</th></tr></thead><tbody id="rows"></tbody></table></div><p id="count" class="muted"></p><p id="notice" class="muted"></p><p class="muted">Các nút sao lưu JSON vẫn hoạt động thủ công. Chế độ tự động bên dưới lưu bản sao trên trình duyệt đang dùng, không cần Cloud Functions.</p></section>
-<section class="panel" id="exportPanel"><h2>💾 Sao lưu danh sách tài khoản</h2><p class="muted">Xuất trực tiếp từ danh sách hồ sơ đã tải trên trang quản trị. Không cần mở Firebase Console. Chọn xuất tất cả tài khoản hoặc chỉ những tài khoản đang được lọc.</p><div class="tools"><select id="backupScope"><option value="all">Toàn bộ tài khoản</option><option value="filtered">Theo bộ lọc/tìm kiếm hiện tại</option></select><button class="btn" id="exportTxt">⬇ Tải TXT</button><button class="btn" id="exportExcel">⬇ Tải Excel (CSV)</button><button class="btn secondary" id="exportPdf">🖨 In / Lưu PDF</button></div><div class="panel" style="background:#f6f9ff;margin:12px 0"><h2>⏱ Sao lưu tự động trên trình duyệt</h2><p class="muted">Mỗi lần quản trị viên mở trang và dữ liệu tải thành công, HanziGo tự tạo bản sao lưu ngày/tuần nếu chưa có. Khi để trang mở, hệ thống kiểm tra định kỳ. Bản sao lưu được lưu trên chính trình duyệt này; không cần mở Firebase Console.</p><div class="tools"><label><input id="autoDaily" type="checkbox" checked> Hằng ngày</label><label><input id="autoWeekly" type="checkbox" checked> Hằng tuần</label><button class="btn secondary" id="autoBackupNow">Sao lưu ngay</button></div><p id="autoBackupState" class="muted">Đang chờ dữ liệu...</p><div id="backupHistory" class="scroll"></div><p class="muted"><b>Giới hạn:</b> Khi đóng trình duyệt hoặc tắt máy, không có bản sao lưu mới. Lần mở Admin tiếp theo sẽ sao lưu dữ liệu hiện tại, không thể tái tạo dữ liệu lịch sử đã bỏ lỡ. Xóa dữ liệu trình duyệt hoặc đổi máy có thể làm mất bản lưu. Hãy tải các bản sao lưu quan trọng về máy.</p></div><p id="backupStatus" class="muted"></p><p class="muted">Bản sao lưu là danh sách báo cáo (UID đầy đủ, UID 6 ký tự, email, trạng thái, ngày tạo, hạn Premium, trạng thái khóa). Không bao gồm mật khẩu hay dữ liệu Firebase Authentication. Để khôi phục dữ liệu Firestore cần bản sao lưu JSON đầy đủ.</p></section>
+<section class="panel" id="exportPanel"><h2>💾 Sao lưu danh sách tài khoản</h2><p class="muted">Xuất trực tiếp từ danh sách hồ sơ đã tải trên trang quản trị. Không cần mở Firebase Console. Chọn xuất tất cả tài khoản hoặc chỉ những tài khoản đang được lọc.</p><div class="tools"><select id="backupScope"><option value="all">Toàn bộ tài khoản</option><option value="filtered">Theo bộ lọc/tìm kiếm hiện tại</option></select><button class="btn" id="exportTxt">⬇ Tải TXT</button><button class="btn" id="exportExcel">⬇ Tải Excel (CSV)</button><button class="btn secondary" id="exportPdf">🖨 In / Lưu PDF</button></div><div class="panel" style="background:#f6f9ff;margin:12px 0"><h2>⏱ Sao lưu tự động trên trình duyệt</h2><p class="muted">Mỗi lần quản trị viên mở trang và dữ liệu tải thành công, HanziGo tự tạo bản sao lưu ngày/tuần nếu chưa có. Khi để trang mở, hệ thống kiểm tra định kỳ. Bản sao lưu được lưu trên chính trình duyệt này. Chức năng gửi email là tác vụ máy chủ riêng, không dùng dữ liệu IndexedDB.</p><div class="tools"><label><input id="autoDaily" type="checkbox" checked> Hằng ngày</label><label><input id="autoWeekly" type="checkbox" checked> Hằng tuần</label><button class="btn secondary" id="autoBackupNow">Sao lưu ngay</button></div><p id="autoBackupState" class="muted">Đang chờ dữ liệu...</p><div class="panel" style="margin:12px 0;background:#f5faff"><h2>✉️ Gửi sao lưu về email</h2><p class="muted">Sau khi cấu hình dịch vụ gửi email trên máy chủ, HanziGo sẽ tự sao lưu và gửi bản CSV đính kèm tới email quản trị mỗi ngày và mỗi tuần, kể cả khi bạn đóng trang Admin. <b>Chưa triển khai máy chủ thì email chưa được gửi.</b></p><p><b>Email nhận:</b> <code>volam178@gmail.com</code> (có thể thay đổi trong cấu hình máy chủ).</p><p class="muted">Trạng thái: <b>Chưa kết nối dịch vụ gửi email</b>. Xem file HUONG_DAN.txt trong ZIP để kích hoạt và kiểm tra nhật ký gửi.</p></div><div id="backupHistory" class="scroll"></div><p class="muted"><b>Giới hạn:</b> Khi đóng trình duyệt hoặc tắt máy, không có bản sao lưu mới. Lần mở Admin tiếp theo sẽ sao lưu dữ liệu hiện tại, không thể tái tạo dữ liệu lịch sử đã bỏ lỡ. Xóa dữ liệu trình duyệt hoặc đổi máy có thể làm mất bản lưu. Hãy tải các bản sao lưu quan trọng về máy.</p></div><p id="backupStatus" class="muted"></p><p class="muted">Bản sao lưu là danh sách báo cáo (UID đầy đủ, UID 6 ký tự, email, trạng thái, ngày tạo, hạn Premium, trạng thái khóa). Không bao gồm mật khẩu hay dữ liệu Firebase Authentication. Để khôi phục dữ liệu Firestore cần bản sao lưu JSON đầy đủ.</p></section>
+<section class="panel" id="restorePanel"><h2>♻️ Phục hồi hồ sơ từ bản sao lưu</h2><p class="muted">Chọn file JSON từ nút Sao lưu ngày/tuần hoặc bản JSON đã tải từ lịch sử. Xem trước và chọn từng hồ sơ trước khi ghi dữ liệu trở lại Firestore. Không xóa hồ sơ hiện tại; không tạo lại tài khoản Firebase Authentication.</p><div class="tools"><input id="restoreFile" type="file" accept=".json,application/json"><button id="restorePreview" class="btn secondary" type="button">🔎 Kiểm tra bản sao lưu</button></div><div id="restoreSummary" class="muted" aria-live="polite"></div><div class="tools"><label><input id="restorePremium" type="checkbox"> Cho phép phục hồi hạn Premium</label><label><input id="restoreDisabled" type="checkbox"> Cho phép phục hồi trạng thái vô hiệu hóa</label></div><div class="scroll" id="restoreTable"></div><div class="tools"><button id="restoreApply" type="button" class="btn danger" disabled>♻️ Xác nhận phục hồi hồ sơ đã chọn</button></div><p id="restoreStatus" class="muted" aria-live="polite"></p><p class="muted"><b>Giới hạn:</b> chỉ cập nhật các hồ sơ đã tồn tại trong Firestore. Nếu tài khoản đã bị xóa khỏi Firebase Authentication, thao tác này không tạo lại được đăng nhập. Không phục hồi quyền quản trị, không ghi đè các trường ngoài danh sách an toàn.</p></section>
 <section class="panel"><h2>Hướng dẫn</h2><p><b>Sao lưu tự động:</b> bản lưu được tạo khi Admin đang mở và đã tải dữ liệu; không chạy khi máy tắt. Muốn sao lưu 24/7 cần dịch vụ máy chủ riêng.</p><p>Chỉ nhấn <b>Mở khóa 30 ngày</b> sau khi đã kiểm tra tiền thực nhận trong tài khoản ngân hàng. Nếu học viên còn Premium, 30 ngày được cộng từ ngày hết hạn hiện tại; nếu đã hết hạn, tính từ thời điểm kích hoạt.</p><p class="muted">Trang quản trị không tự kiểm tra chuyển khoản hoặc tự kích hoạt Premium.</p></section></main></div>
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
@@ -118,6 +119,72 @@ async function hgAutoBackupCheck(force=false){
 }
 el('autoBackupNow').onclick=()=>hgAutoBackupCheck(true);
 setInterval(()=>{if(adminUid&&users.length)hgAutoBackupCheck()},15*60*1000);
+
+
+// Phục hồi có xem trước, giới hạn vào hồ sơ đang tồn tại và các trường cho phép.
+let hgRestoreItems=[];
+const hgRestoreBasic=['email','displayName','photoURL','createdAt','trialStartAt','trialStartedAt','xp','streak','lastActiveAt'];
+const hgRestoreDateFields=new Set(['createdAt','trialStartAt','trialStartedAt','lastActiveAt','premiumUntil','disabledAt']);
+function hgRestoreParseDate(v){
+ if(v==null)return null;
+ if(typeof v==='string'){const d=new Date(v);if(!Number.isFinite(d.getTime()))throw Error('Ngày không hợp lệ: '+v);return Timestamp.fromDate(d)}
+ if(typeof v==='object'&&typeof v.seconds==='number')return new Timestamp(v.seconds,Number(v.nanoseconds)||0);
+ throw Error('Định dạng ngày không hỗ trợ');
+}
+function hgRestorePayload(item){
+ const data={};
+ for(const k of hgRestoreBasic){if(Object.prototype.hasOwnProperty.call(item,k)){
+  const v=item[k];if(v!==null&&typeof v==='object'&&!hgRestoreDateFields.has(k))continue;
+  if(k==='email'&&typeof v!=='string')continue;
+  if(['xp','streak'].includes(k)&&(!Number.isFinite(v)||v<0))continue;
+  data[k]=hgRestoreDateFields.has(k)?hgRestoreParseDate(v):v;
+ }}
+ if(el('restorePremium').checked&&Object.prototype.hasOwnProperty.call(item,'premiumUntil'))data.premiumUntil=hgRestoreParseDate(item.premiumUntil);
+ if(el('restoreDisabled').checked&&typeof item.disabled==='boolean')data.disabled=item.disabled;
+ return data;
+}
+function hgRestoreRender(){
+ const box=el('restoreTable');box.replaceChildren();if(!hgRestoreItems.length)return;
+ const table=document.createElement('table');table.innerHTML='<thead><tr><th>Chọn</th><th>Email / UID</th><th>Trạng thái</th><th>Trường có thể phục hồi</th></tr></thead>';
+ const body=document.createElement('tbody');for(const entry of hgRestoreItems){const tr=document.createElement('tr'),td=document.createElement('td');
+ const cb=document.createElement('input');cb.type='checkbox';cb.className='hg-restore-check';cb.dataset.uid=entry.uid;cb.disabled=!entry.exists||entry.uid===adminUid;cb.checked=entry.exists&&entry.uid!==adminUid;td.append(cb);tr.append(td);
+ for(const val of [(entry.email||'(không có email)')+' / '+entry.uid.slice(0,6).toUpperCase(),entry.exists?'Đang tồn tại':'Không có trên Firestore — bỏ qua',entry.exists?Object.keys(hgRestorePayload(entry.data)).join(', ')||'Không có trường hỗ trợ':'—']){const cell=document.createElement('td');cell.textContent=val;tr.append(cell)}body.append(tr)}table.append(body);box.append(table);
+ el('restoreApply').disabled=!hgRestoreItems.some(x=>x.exists&&x.uid!==adminUid);
+}
+async function hgRestorePreview(){
+ el('restoreApply').disabled=true;hgRestoreItems=[];el('restoreTable').replaceChildren();
+ const file=el('restoreFile').files?.[0];if(!file){el('restoreSummary').textContent='Hãy chọn file JSON trước.';return}
+ if(file.size>15*1024*1024){el('restoreSummary').textContent='File lớn hơn 15 MB, không thể xem trước trong trang này.';return}
+ try{
+  const data=JSON.parse(await file.text());if(data.app!=='HanziGo'||!Array.isArray(data.users))throw Error('Không đúng định dạng sao lưu HanziGo');
+  if(data.users.length>10000)throw Error('Bản sao lưu có quá nhiều hồ sơ');
+  const seen=new Set();for(const item of data.users){
+   const uid=item.uid||item.id;if(typeof uid!=='string'||!/^[A-Za-z0-9]{6,128}$/.test(uid)||seen.has(uid))throw Error('UID thiếu, trùng hoặc không hợp lệ');
+   seen.add(uid);const existing=users.find(u=>u.id===uid);
+   hgRestoreItems.push({uid,email:item.email||existing?.email||'',exists:!!existing,data:item});
+  }
+  hgRestoreRender();el('restoreSummary').textContent=`Đã đọc ${hgRestoreItems.length} hồ sơ; ${hgRestoreItems.filter(x=>x.exists).length} hồ sơ đang tồn tại. Hãy kiểm tra kỹ trước khi phục hồi.`;
+ }catch(e){hgRestoreItems=[];el('restoreSummary').textContent='Không đọc được bản sao lưu: '+e.message}
+}
+el('restorePreview').onclick=hgRestorePreview;
+el('restorePremium').onchange=()=>{if(hgRestoreItems.length)hgRestoreRender()};
+el('restoreDisabled').onchange=()=>{if(hgRestoreItems.length)hgRestoreRender()};
+el('restoreApply').onclick=async()=>{
+ if(!adminUid)return;const chosen=[...document.querySelectorAll('.hg-restore-check:checked')].map(x=>x.dataset.uid);
+ if(!chosen.length){el('restoreStatus').textContent='Chưa chọn hồ sơ nào.';return}
+ const msg=`PHỤC HỒI ${chosen.length} hồ sơ đang tồn tại?\n\n${el('restorePremium').checked?'CÓ ghi đè hạn Premium.':'KHÔNG ghi đè hạn Premium.'}\n${el('restoreDisabled').checked?'CÓ ghi đè trạng thái vô hiệu hóa.':'KHÔNG ghi đè trạng thái vô hiệu hóa.'}\n\nThao tác này sẽ ghi dữ liệu vào Firestore.`;
+ if(!confirm(msg))return;
+ const typed=prompt('Nhập chính xác PHUC HOI để xác nhận:');if(typed!=='PHUC HOI')return;
+ const btn=el('restoreApply');btn.disabled=true;let ok=0,fail=0;const errors=[];
+ for(const uid of chosen){try{
+  if(uid===adminUid)throw Error('Không phục hồi hồ sơ quản trị');
+  const entry=hgRestoreItems.find(x=>x.uid===uid);if(!entry||!entry.exists)throw Error('Không có trong danh sách hiện tại');
+  const payload=hgRestorePayload(entry.data);if(!Object.keys(payload).length)throw Error('Không có trường hỗ trợ');
+  const ref=doc(db,'users',uid);await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error('Hồ sơ đã bị xóa khỏi Firestore');tx.update(ref,payload)});ok++;
+ }catch(e){fail++;errors.push(uid.slice(0,6)+': '+e.message)}}
+ el('restoreStatus').textContent=`Phục hồi xong: ${ok} thành công, ${fail} thất bại. ${errors.slice(0,4).join(' | ')}`;
+ hgRestoreItems=[];el('restoreTable').replaceChildren();await load();
+};
 
 el('daily').onclick=()=>snapshotBackup('daily');el('weekly').onclick=()=>snapshotBackup('weekly');
 el('login').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>el('authError').textContent=e.message);el('logout').onclick=()=>{users=[];signOut(auth)};el('search').oninput=render;el('filter').onchange=render;el('refresh').onclick=load;
