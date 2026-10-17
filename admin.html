@@ -5,13 +5,14 @@
 <main id="dashboard" class="hide"><div class="cards"><div class="metric">Tổng hồ sơ học viên<b id="total">0</b></div><div class="metric">Đang dùng thử<b id="trial">0</b></div><div class="metric">Premium còn hạn<b id="premium">0</b></div><div class="metric">Đã hết hạn<b id="expired">0</b></div><div class="metric">Premium sắp hết hạn (≤7 ngày)<b id="soon">0</b></div></div>
 <section class="panel"><h2>Tỷ lệ trạng thái học viên</h2><div id="bar" class="bar"></div><p id="chartLegend" class="muted"></p><p class="muted">Số liệu dựa trên hồ sơ có trong Firestore. Tài khoản cũ chưa từng được ghi hồ sơ có thể chưa xuất hiện.</p></section>
 <section class="panel"><h2>Danh sách tài khoản</h2><div class="tools"><input id="search" placeholder="Tìm email hoặc UID"><select id="filter"><option value="all">Tất cả</option><option value="trial">Đang dùng thử</option><option value="premium">Premium</option><option value="expired">Hết hạn</option><option value="disabled">Vô hiệu</option></select><button id="refresh" class="btn secondary">Làm mới</button><button id="csv" class="btn secondary">Xuất CSV</button><button id="daily" class="btn secondary">Sao lưu ngày</button><button id="weekly" class="btn secondary">Sao lưu tuần</button></div><div class="scroll"><table><thead><tr><th>Email</th><th>UID (6 ký tự)</th><th>Trạng thái</th><th>Ngày tạo hồ sơ</th><th>Premium đến</th><th>Thao tác</th></tr></thead><tbody id="rows"></tbody></table></div><p id="count" class="muted"></p><p id="notice" class="muted"></p><p class="muted">Các nút sao lưu JSON vẫn hoạt động thủ công. Chế độ tự động bên dưới lưu bản sao trên trình duyệt đang dùng, không cần Cloud Functions.</p></section>
-<section class="panel" id="exportPanel"><h2>💾 Sao lưu danh sách tài khoản</h2><p class="muted">Xuất trực tiếp từ danh sách hồ sơ đã tải trên trang quản trị. Không cần mở Firebase Console. Chọn xuất tất cả tài khoản hoặc chỉ những tài khoản đang được lọc.</p><div class="tools"><select id="backupScope"><option value="all">Toàn bộ tài khoản</option><option value="filtered">Theo bộ lọc/tìm kiếm hiện tại</option></select><button class="btn" id="exportTxt">⬇ Tải TXT</button><button class="btn" id="exportExcel">⬇ Tải Excel (CSV)</button><button class="btn secondary" id="exportPdf">🖨 In / Lưu PDF</button></div><div class="panel" style="background:#f6f9ff;margin:12px 0"><h2>⏱ Sao lưu tự động trên trình duyệt</h2><p class="muted">Mỗi lần quản trị viên mở trang và dữ liệu tải thành công, HanziGo tự tạo bản sao lưu ngày/tuần nếu chưa có. Khi để trang mở, hệ thống kiểm tra định kỳ. Bản sao lưu được lưu trên chính trình duyệt này. Chức năng gửi email là tác vụ máy chủ riêng, không dùng dữ liệu IndexedDB.</p><div class="tools"><label><input id="autoDaily" type="checkbox" checked> Hằng ngày</label><label><input id="autoWeekly" type="checkbox" checked> Hằng tuần</label><button class="btn secondary" id="autoBackupNow">Sao lưu ngay</button></div><p id="autoBackupState" class="muted">Đang chờ dữ liệu...</p><div class="panel" style="margin:12px 0;background:#f5faff"><h2>✉️ Gửi sao lưu về email</h2><p class="muted">Sau khi cấu hình dịch vụ gửi email trên máy chủ, HanziGo sẽ tự sao lưu và gửi bản CSV đính kèm tới email quản trị mỗi ngày và mỗi tuần, kể cả khi bạn đóng trang Admin. <b>Chưa triển khai máy chủ thì email chưa được gửi.</b></p><p><b>Email nhận:</b> <code>volam178@gmail.com</code> (có thể thay đổi trong cấu hình máy chủ).</p><p class="muted">Trạng thái: <b>Chưa kết nối dịch vụ gửi email</b>. Xem file HUONG_DAN.txt trong ZIP để kích hoạt và kiểm tra nhật ký gửi.</p></div><div id="backupHistory" class="scroll"></div><p class="muted"><b>Giới hạn:</b> Khi đóng trình duyệt hoặc tắt máy, không có bản sao lưu mới. Lần mở Admin tiếp theo sẽ sao lưu dữ liệu hiện tại, không thể tái tạo dữ liệu lịch sử đã bỏ lỡ. Xóa dữ liệu trình duyệt hoặc đổi máy có thể làm mất bản lưu. Hãy tải các bản sao lưu quan trọng về máy.</p></div><p id="backupStatus" class="muted"></p><p class="muted">Bản sao lưu là danh sách báo cáo (UID đầy đủ, UID 6 ký tự, email, trạng thái, ngày tạo, hạn Premium, trạng thái khóa). Không bao gồm mật khẩu hay dữ liệu Firebase Authentication. Để khôi phục dữ liệu Firestore cần bản sao lưu JSON đầy đủ.</p></section>
+<section class="panel" id="exportPanel"><h2>💾 Sao lưu danh sách tài khoản</h2><p class="muted">Xuất trực tiếp từ danh sách hồ sơ đã tải trên trang quản trị. Không cần mở Firebase Console. Chọn xuất tất cả tài khoản hoặc chỉ những tài khoản đang được lọc.</p><div class="tools"><select id="backupScope"><option value="all">Toàn bộ tài khoản</option><option value="filtered">Theo bộ lọc/tìm kiếm hiện tại</option></select><button class="btn" id="exportTxt">⬇ Tải TXT</button><button class="btn" id="exportExcel">⬇ Tải Excel (CSV)</button><button class="btn secondary" id="exportPdf">🖨 In / Lưu PDF</button></div><div class="panel" style="background:#f6f9ff;margin:12px 0"><h2>⏱ Sao lưu tự động trên trình duyệt</h2><p class="muted">Mỗi lần quản trị viên mở trang và dữ liệu tải thành công, HanziGo tự tạo bản sao lưu ngày/tuần nếu chưa có. Khi để trang mở, hệ thống kiểm tra định kỳ. Bản sao lưu được lưu trên chính trình duyệt này. Chức năng gửi email là tác vụ máy chủ riêng, không dùng dữ liệu IndexedDB.</p><div class="tools"><label><input id="autoDaily" type="checkbox" checked> Hằng ngày</label><label><input id="autoWeekly" type="checkbox" checked> Hằng tuần</label><button class="btn secondary" id="autoBackupNow">Sao lưu ngay</button></div><p id="autoBackupState" class="muted">Đang chờ dữ liệu...</p><div class="panel" style="margin:12px 0;background:#f5faff"><h2>✉️ Gửi sao lưu về email</h2><p class="muted">Sau khi đăng nhập Admin, HanziGo sẽ tự tải TXT về máy và yêu cầu dịch vụ email gửi bản TXT đính kèm tới email quản trị mỗi lần quản trị viên đăng nhập trang Admin. <b>Cần thiết lập dịch vụ gửi email một lần để gửi tự động.</b></p><p><b>Email nhận:</b> <code>volam178@gmail.com</code> (có thể thay đổi trong cấu hình máy chủ).</p><p id="emailServiceStatus" class="muted" aria-live="polite">Trạng thái: Đang chờ kiểm tra kết nối dịch vụ email.</p><div class="tools"><button type="button" id="emailTest" class="btn secondary">📧 Gửi lại email TXT</button><button type="button" id="emailCheck" class="btn secondary">🔄 Kiểm tra kết nối</button></div><p class="muted">Chỉ quản trị viên đã đăng nhập mới gửi thử được. Hệ thống máy chủ phải được triển khai một lần; không đặt khóa email trong mã HTML/GitHub.</p></div><div id="backupHistory" class="scroll"></div><p class="muted"><b>Giới hạn:</b> Khi đóng trình duyệt hoặc tắt máy, không có bản sao lưu mới. Lần mở Admin tiếp theo sẽ sao lưu dữ liệu hiện tại, không thể tái tạo dữ liệu lịch sử đã bỏ lỡ. Xóa dữ liệu trình duyệt hoặc đổi máy có thể làm mất bản lưu. Hãy tải các bản sao lưu quan trọng về máy.</p></div><p id="backupStatus" class="muted"></p><p class="muted">Bản sao lưu là danh sách báo cáo (UID đầy đủ, UID 6 ký tự, email, trạng thái, ngày tạo, hạn Premium, trạng thái khóa). Không bao gồm mật khẩu hay dữ liệu Firebase Authentication. Để khôi phục dữ liệu Firestore cần bản sao lưu JSON đầy đủ.</p></section>
 <section class="panel" id="restorePanel"><h2>♻️ Phục hồi hồ sơ từ bản sao lưu</h2><p class="muted">Chọn file JSON từ nút Sao lưu ngày/tuần hoặc bản JSON đã tải từ lịch sử. Xem trước và chọn từng hồ sơ trước khi ghi dữ liệu trở lại Firestore. Không xóa hồ sơ hiện tại; không tạo lại tài khoản Firebase Authentication.</p><div class="tools"><input id="restoreFile" type="file" accept=".json,application/json"><button id="restorePreview" class="btn secondary" type="button">🔎 Kiểm tra bản sao lưu</button></div><div id="restoreSummary" class="muted" aria-live="polite"></div><div class="tools"><label><input id="restorePremium" type="checkbox"> Cho phép phục hồi hạn Premium</label><label><input id="restoreDisabled" type="checkbox"> Cho phép phục hồi trạng thái vô hiệu hóa</label></div><div class="scroll" id="restoreTable"></div><div class="tools"><button id="restoreApply" type="button" class="btn danger" disabled>♻️ Xác nhận phục hồi hồ sơ đã chọn</button></div><p id="restoreStatus" class="muted" aria-live="polite"></p><p class="muted"><b>Giới hạn:</b> chỉ cập nhật các hồ sơ đã tồn tại trong Firestore. Nếu tài khoản đã bị xóa khỏi Firebase Authentication, thao tác này không tạo lại được đăng nhập. Không phục hồi quyền quản trị, không ghi đè các trường ngoài danh sách an toàn.</p></section>
 <section class="panel"><h2>Hướng dẫn</h2><p><b>Sao lưu tự động:</b> bản lưu được tạo khi Admin đang mở và đã tải dữ liệu; không chạy khi máy tắt. Muốn sao lưu 24/7 cần dịch vụ máy chủ riêng.</p><p>Chỉ nhấn <b>Mở khóa 30 ngày</b> sau khi đã kiểm tra tiền thực nhận trong tài khoản ngân hàng. Nếu học viên còn Premium, 30 ngày được cộng từ ngày hết hạn hiện tại; nếu đã hết hạn, tính từ thời điểm kích hoạt.</p><p class="muted">Trang quản trị không tự kiểm tra chuyển khoản hoặc tự kích hoạt Premium.</p></section></main></div>
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {getFirestore,doc,getDoc,collection,getDocs,runTransaction,Timestamp,updateDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import {getFunctions,httpsCallable} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js';
 const firebaseConfig = {
   apiKey: 'AIzaSyA0e_sTd0uZe-_XJzA1QM5UF26_yxqlj18',
   authDomain: 'hanzigo-5793f.firebaseapp.com',
@@ -20,7 +21,7 @@ const firebaseConfig = {
   messagingSenderId: '42312481944',
   appId: '1:42312481944:web:802a3f3f2570a95857e4ed'
 };
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),functions=getFunctions(app,'asia-southeast1');
 const el=id=>document.getElementById(id),TRIAL=3*86400000;let users=[],adminUid=null;
 const date=v=>v?.toDate?.()||(v?new Date(v):null),fmt=v=>v&&!isNaN(v)?new Intl.DateTimeFormat('vi-VN',{dateStyle:'short',timeStyle:'short',timeZone:'Asia/Ho_Chi_Minh'}).format(v):'—';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
@@ -186,8 +187,52 @@ el('restoreApply').onclick=async()=>{
  hgRestoreItems=[];el('restoreTable').replaceChildren();await load();
 };
 
+
+// Email backup runs server-side; never expose Resend API keys in public HTML.
+const emailStatus=el('emailServiceStatus');
+async function checkEmailService(){
+ if(!adminUid){emailStatus.textContent='Đăng nhập tài khoản quản trị trước.';return;}
+ el('emailCheck').disabled=true;
+ emailStatus.textContent='Đang kiểm tra Cloud Functions…';
+ try{
+  const result=await httpsCallable(functions,'backupEmailStatus')({});
+  const d=result.data;
+  emailStatus.textContent=d.configured
+   ?'✅ Đã kết nối máy chủ. Email nhận: '+d.recipient+'. Lịch: 02:00 hằng ngày và 02:30 thứ Hai (giờ Việt Nam).'
+   :'⚠️ Cloud Functions đã chạy nhưng chưa thiết lập email gửi. Kiểm tra file hướng dẫn trong ZIP.';
+ }catch(e){emailStatus.textContent='❌ Chưa kết nối được máy chủ gửi email: '+(e.message||String(e));}
+ finally{el('emailCheck').disabled=false;}
+}
+el('emailCheck').onclick=checkEmailService;
+el('emailTest').onclick=async()=>{
+ if(!adminUid)return;
+ if(!confirm('Gửi ngay bản sao lưu TXT của toàn bộ hồ sơ học viên đến email quản trị?'))return;
+ const btn=el('emailTest');btn.disabled=true;emailStatus.textContent='Đang tạo bản sao lưu và gửi email…';
+ try{
+  const result=await httpsCallable(functions,'sendBackupEmailNow')({});
+  emailStatus.textContent='✅ Dịch vụ gửi email đã chấp nhận yêu cầu gửi '+result.data.count+' hồ sơ. Hãy kiểm tra hộp thư và Spam.';
+ }catch(e){emailStatus.textContent='❌ Gửi không thành công: '+(e.message||String(e));}
+ finally{btn.disabled=false;}
+};
+
 el('daily').onclick=()=>snapshotBackup('daily');el('weekly').onclick=()=>snapshotBackup('weekly');
 el('login').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>el('authError').textContent=e.message);el('logout').onclick=()=>{users=[];signOut(auth)};el('search').oninput=render;el('filter').onchange=render;el('refresh').onclick=load;
+
+let hgLoginBackupDone=false;
+async function hgBackupOnLogin(){
+ if(!adminUid||hgLoginBackupDone)return;
+ hgLoginBackupDone=true;
+ const status=el('emailServiceStatus');
+ try{
+  const stamp=new Date().toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'});
+  const lines=['HANZIGO - SAO LUU DANH SACH TAI KHOAN','Thoi diem: '+stamp,'So ho so: '+users.length,''];
+  for(const u of users){lines.push('Email: '+(u.email||''),'UID: '+u.id,'UID 6 ky tu: '+u.id.slice(0,6).toUpperCase(),'Trang thai: '+label(kind(u)),'Ngay tao: '+fmt(date(u.createdAt)),'Premium den: '+fmt(date(u.premiumUntil)),'Vo hieu: '+(u.disabled===true?'Co':'Khong'),'');}
+  backupDownload('HanziGo_Sao_Luu_Dang_Nhap_'+new Date().toISOString().slice(0,10)+'.txt','text/plain;charset=utf-8','\uFEFF'+lines.join('\r\n'));
+  status.textContent='Đã tạo file TXT trên máy. Đang gửi bản TXT qua email…';
+  const result=await httpsCallable(functions,'sendBackupEmailNow')({});
+  status.textContent='Đã yêu cầu gửi email đính kèm TXT ('+result.data.count+' hồ sơ). Hãy kiểm tra hộp thư.';
+ }catch(e){status.textContent='Đã xuất TXT về máy nhưng chưa gửi được email: '+(e.message||String(e))+'. Cần cài dịch vụ gửi email một lần.';}
+}
 el('csv').onclick=()=>{const lines=[['UID','Email','Trang thai','Ngay tao ho so','Premium den'],...users.map(u=>[u.id,u.email||'',label(kind(u)),fmt(date(u.createdAt)),fmt(date(u.premiumUntil))])];const csv='﻿'+lines.map(row=>row.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='hanzigo-thong-ke.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);};
-onAuthStateChanged(auth,async user=>{adminUid=null;el('dashboard').classList.add('hide');el('authPanel').classList.remove('hide');el('logout').classList.toggle('hide',!user);if(!user){el('authStatus').textContent='Đăng nhập bằng tài khoản Admin đã được cấp quyền.';return;}el('authStatus').textContent='Đang kiểm tra quyền quản trị…';try{const d=await getDoc(doc(db,'admins',user.uid));if(!d.exists()||d.data().enabled!==true){el('authStatus').textContent='Tài khoản '+user.email+' chưa được cấp quyền Admin.';return;}adminUid=user.uid;el('authPanel').classList.add('hide');el('dashboard').classList.remove('hide');await load();}catch(e){el('authStatus').textContent='Không xác minh được quyền Admin: '+e.message;}});
+onAuthStateChanged(auth,async user=>{adminUid=null;hgLoginBackupDone=false;el('dashboard').classList.add('hide');el('authPanel').classList.remove('hide');el('logout').classList.toggle('hide',!user);if(!user){el('authStatus').textContent='Đăng nhập bằng tài khoản Admin đã được cấp quyền.';return;}el('authStatus').textContent='Đang kiểm tra quyền quản trị…';try{const d=await getDoc(doc(db,'admins',user.uid));if(!d.exists()||d.data().enabled!==true){el('authStatus').textContent='Tài khoản '+user.email+' chưa được cấp quyền Admin.';return;}adminUid=user.uid;el('authPanel').classList.add('hide');el('dashboard').classList.remove('hide');await load();await hgBackupOnLogin();}catch(e){el('authStatus').textContent='Không xác minh được quyền Admin: '+e.message;}});
 </script></body></html>
