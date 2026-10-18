@@ -1483,4 +1483,6 @@ const start=()=>{const app=document.getElementById('app');if(app){obs.observe(ap
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 document.addEventListener('click',e=>{const btn=e.target.closest('[data-py-say]');if(!btn)return;const sample=btn.getAttribute('data-py-say');if(!sample)return;if(!('speechSynthesis' in window)){alert('Trình duyệt không hỗ trợ đọc tiếng Trung.');return;}window.speechSynthesis.cancel();const voices=window.speechSynthesis.getVoices();const voice=voices.find(v=>/^zh[-_](CN|Hans)/i.test(v.lang))||voices.find(v=>/^zh/i.test(v.lang));if(!voice){alert('Chưa tìm thấy giọng tiếng Trung trên máy. Hãy cài giọng Chinese (Simplified) trong Windows rồi mở lại Chrome. Không dùng giọng tiếng Việt để đọc Pinyin.');return;}const utter=new SpeechSynthesisUtterance(sample);utter.lang='zh-CN';utter.voice=voice;utter.rate=.78;utter.pitch=1;window.speechSynthesis.speak(utter)});
 })();
-</script></body></html>
+</script>
+ <script type="module" src="./hanzigo-online.js"></script>
+</body></html>
